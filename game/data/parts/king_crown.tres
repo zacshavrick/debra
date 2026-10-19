@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"king_crown"
+display_name = "King's Crown"
+slot = 0
+description = "SPECIAL: only the King Crab drops this."
+max_hp = 30
+attack = 6
+defense = 4
+speed = 1
+ability = &""
+color = Color(0.8, 0.2, 0.15, 1)
+accent = Color(0.98, 0.82, 0.3, 1)
+shape = {"stalk": 0.22, "eye": 0.08, "antennae": 2, "antenna_len": 0.5, "extra": "crown"}
+special = true

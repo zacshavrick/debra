@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"isopod_feelers"
+display_name = "Isopod Feelers"
+slot = 2
+description = ""
+max_hp = 0
+attack = 3
+defense = 2
+speed = 0
+ability = &"pinch"
+color = Color(0.7, 0.68, 0.78, 1)
+accent = Color(0.45, 0.42, 0.52, 1)
+shape = {"kind": "pincer", "arm": 0.28, "size": 0.18}
+special = false

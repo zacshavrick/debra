@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/shark_fin.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/shark_jaw.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"reef_shark"
+display_name = "Reef Shark"
+kind = 1
+body_kind = &"shark"
+size = 1.3
+base_hp = 60.0
+hover = 0.6
+color = Color(0.45, 0.52, 0.6, 1)
+accent = Color(0.35, 0.4, 0.48, 1)
+speed = 4.5
+behaviour = &"charger"
+attack = &"dash"
+damage_mult = 0.55
+aggro_range = 10.0
+spawn_weight = 1.0
+drops = [ExtResource("3"), ExtResource("2")]
+rarity_luck = 0.5

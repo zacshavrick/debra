@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/urchin_shell.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"urchin"
+display_name = "Sea Urchin"
+kind = 1
+body_kind = &"urchin"
+size = 0.8
+base_hp = 25.0
+color = Color(0.25, 0.12, 0.3, 1)
+accent = Color(0.45, 0.2, 0.55, 1)
+speed = 0.0
+behaviour = &"turret"
+attack = &"spines"
+damage_mult = 0.5
+aggro_range = 6.0
+spawn_weight = 1.2
+drops = [ExtResource("2")]

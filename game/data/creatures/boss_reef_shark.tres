@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/shark_fin.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/shark_jaw.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"boss_reef_shark"
+display_name = "Great Reef Shark"
+boss = true
+kind = 1
+body_kind = &"shark"
+size = 1.9
+base_hp = 300.0
+hover = 0.7
+color = Color(0.38, 0.45, 0.55, 1)
+accent = Color(0.3, 0.35, 0.42, 1)
+speed = 5.0
+behaviour = &"charger"
+attack = &"dash"
+damage_mult = 0.7
+aggro_range = 30.0
+drops = [ExtResource("3"), ExtResource("2")]
+rarity_luck = 1.0

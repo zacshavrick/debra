@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"louise_eyes"
+display_name = "Louise's Eyes"
+slot = 0
+description = ""
+max_hp = 0
+attack = 2
+defense = 0
+speed = 1
+ability = &""
+color = Color(0.98, 0.6, 0.6, 1)
+accent = Color(0.1, 0.1, 0.12, 1)
+shape = {"stalk": 0.16, "eye": 0.085, "antennae": 2, "antenna_len": 0.75}
+special = false

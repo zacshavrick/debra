@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"king_legs"
+display_name = "King Crab Legs"
+slot = 3
+description = ""
+max_hp = 5
+attack = 0
+defense = 2
+speed = 5
+ability = &""
+color = Color(0.8, 0.2, 0.15, 1)
+accent = Color(0.95, 0.7, 0.4, 1)
+shape = {"length": 1.4, "thick": 0.045, "spiky": true}
+special = false

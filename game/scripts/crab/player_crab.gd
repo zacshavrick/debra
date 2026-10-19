@@ -1,7 +1,8 @@
 class_name PlayerCrab
 extends Crab
-## The player's crab (Debra by default). Reads intent from PlayerInput,
-## attacks with each claw, picks up and equips parts, respawns at home.
+## The player's crab (whichever starter you picked). Reads intent from
+## PlayerInput, attacks with each claw, picks up and equips parts, respawns at
+## the level start. What you wear is saved per starter (GameState).
 
 signal equipped(socket: int, part: PartInstance)
 signal respawned
@@ -13,6 +14,8 @@ const HOME_RADIUS := 3.0
 const HOME_HEAL := 15.0   ## HP per second while at home
 
 var creature: CreatureData
+## Set to false in tests/screens that shouldn't touch the save file.
+var persist := true
 var camera: Camera3D
 var home_position := Vector3.ZERO
 var focused_pickup: PartPickup
@@ -26,11 +29,21 @@ func _ready() -> void:
 	super._ready()
 	add_to_group("player")
 	name = "Player"
+	display_name = creature.display_name
 	base_hp = creature.base_hp
 	damage_mult = 1.0
-	equipment.load_loadout(creature.loadout(), Rarity.Tier.COMMON)
+	var parts := GameState.loadout_for(creature.id) if persist else _default_loadout()
+	for s in Equipment.SOCKET_COUNT:
+		equipment.equip(s, parts[s])
 	health.fill()
 	PlayerInput.interact_pressed.connect(_on_interact)
+
+
+func _default_loadout() -> Array[PartInstance]:
+	var out: Array[PartInstance] = []
+	for p in creature.loadout():
+		out.append(PartInstance.new(p))
+	return out
 
 
 func _physics_process(delta: float) -> void:
@@ -60,8 +73,8 @@ func _auto_aim(reach: float) -> Vector3:
 	var best := Vector3.ZERO
 	var best_score := INF
 	var max_d := maxf(reach + 2.0, 4.0)
-	for n in get_tree().get_nodes_in_group("crabs"):
-		var c := n as Crab
+	for n in get_tree().get_nodes_in_group("creatures"):
+		var c := n as Creature
 		if c == null or c.team == team or c.is_dead():
 			continue
 		var to := c.global_position - global_position
@@ -115,7 +128,7 @@ func _on_interact(alt: bool) -> void:
 
 
 ## Equips a part from a pickup (or from nowhere when pickup is null).
-## The replaced part drops at Debra's feet, so nothing is ever lost.
+## The replaced part drops at your feet, so nothing is ever lost.
 func equip_part(socket: int, part: PartInstance, pickup: PartPickup = null) -> void:
 	var drop_at := global_position
 	if pickup:
@@ -126,6 +139,8 @@ func equip_part(socket: int, part: PartInstance, pickup: PartPickup = null) -> v
 	if old:
 		var behind := drop_at - facing * 0.9
 		PartPickup.spawn(get_parent(), behind, old, false)
+	if persist:
+		GameState.store_loadout(creature.id, equipment)
 	equipped.emit(socket, part)
 
 

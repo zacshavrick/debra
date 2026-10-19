@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shark_jaw"
+display_name = "Shark Jaw"
+slot = 2
+description = ""
+max_hp = 10
+attack = 10
+defense = 0
+speed = 0.5
+ability = &"bite"
+color = Color(0.45, 0.52, 0.6, 1)
+accent = Color(0.9, 0.9, 0.88, 1)
+shape = {"kind": "jaw", "arm": 0.34, "size": 0.32}
+special = false

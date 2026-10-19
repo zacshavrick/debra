@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/king_claw.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/king_crown.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/king_legs.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/king_shell.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = &"boss_king_crab"
+display_name = "The King Crab"
+boss = true
+size = 2.3
+base_hp = 480.0
+head = ExtResource("3")
+shell = ExtResource("5")
+claw_l = ExtResource("2")
+claw_r = ExtResource("2")
+legs = ExtResource("4")
+damage_mult = 0.75
+aggro_range = 30.0
+special_drops = [ExtResource("3")]
+special_chance = 0.5
+rarity_luck = 1.5

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"debra_cutter"
+display_name = "Debra's Cutter"
+slot = 2
+description = "The quick one."
+max_hp = 0
+attack = 3
+defense = 0
+speed = 0.5
+ability = &"cut"
+color = Color(0.93, 0.42, 0.22, 1)
+accent = Color(0.3, 0.1, 0.06, 1)
+shape = {"kind": "cutter", "arm": 0.33, "size": 0.24}
+special = false

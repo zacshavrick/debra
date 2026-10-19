@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"marjorie_eyes"
+display_name = "Marjorie's Eyes"
+slot = 0
+description = ""
+max_hp = 10
+attack = 0
+defense = 1
+speed = 0
+ability = &""
+color = Color(0.62, 0.38, 0.55, 1)
+accent = Color(0.06, 0.05, 0.08, 1)
+shape = {"stalk": 0.3, "eye": 0.065, "spread": 0.1, "antennae": 2, "antenna_len": 0.4}
+special = false

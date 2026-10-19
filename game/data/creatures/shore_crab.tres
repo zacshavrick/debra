@@ -1,27 +1,22 @@
-[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="CreatureData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
 [ext_resource type="Resource" path="res://data/parts/shore_eyes.tres" id="2"]
-[ext_resource type="Resource" path="res://data/parts/shore_shell.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/shore_legs.tres" id="3"]
 [ext_resource type="Resource" path="res://data/parts/shore_pincer.tres" id="4"]
-[ext_resource type="Resource" path="res://data/parts/shore_legs.tres" id="5"]
+[ext_resource type="Resource" path="res://data/parts/shore_shell.tres" id="5"]
 
 [resource]
 script = ExtResource("1")
 id = &"shore_crab"
 display_name = "Shore Crab"
-playable = false
 size = 0.75
 base_hp = 18.0
 head = ExtResource("2")
-shell = ExtResource("3")
+shell = ExtResource("5")
 claw_l = ExtResource("4")
 claw_r = ExtResource("4")
-legs = ExtResource("5")
+legs = ExtResource("3")
 damage_mult = 0.5
 aggro_range = 7.0
-preferred_range = 0.0
-spawn_weight = 6.0
-special_drops = []
-special_chance = 0.0
-rarity_luck = 0.0
+spawn_weight = 3.0

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/moray_jaw.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"moray_eel"
+display_name = "Moray Eel"
+kind = 1
+body_kind = &"eel"
+size = 1.0
+base_hp = 30.0
+color = Color(0.35, 0.45, 0.2, 1)
+accent = Color(0.75, 0.7, 0.25, 1)
+speed = 3.5
+behaviour = &"ambusher"
+attack = &"dash"
+damage_mult = 0.5
+aggro_range = 6.0
+spawn_weight = 1.5
+drops = [ExtResource("2")]

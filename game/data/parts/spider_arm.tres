@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"spider_arm"
+display_name = "Spider Crab Arm"
+slot = 2
+description = ""
+max_hp = 0
+attack = 5
+defense = 0
+speed = 0
+ability = &"lash"
+color = Color(0.62, 0.5, 0.42, 1)
+accent = Color(0.4, 0.3, 0.25, 1)
+shape = {"kind": "lash", "arm": 0.44, "size": 0.2}
+special = false

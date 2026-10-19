@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"jelly_bell"
+display_name = "Jelly Cap"
+slot = 0
+description = "Glows a bit."
+max_hp = 5
+attack = 5
+defense = 0
+speed = 0.5
+ability = &""
+color = Color(0.75, 0.55, 1.0, 1)
+accent = Color(1.0, 0.6, 0.9, 1)
+shape = {"stalk": 0.14, "eye": 0.07, "antennae": 0, "extra": "jelly"}
+special = false

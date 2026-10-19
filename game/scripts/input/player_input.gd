@@ -9,6 +9,8 @@ signal scheme_changed(scheme: Scheme)
 signal interact_pressed(alt: bool)
 ## Debug-only helpers (F-keys), handled by the arena.
 signal debug_pressed(key: int)
+## Back to the map (Esc / Start / the MAP button).
+signal menu_pressed
 
 enum Scheme { KEYBOARD_MOUSE, GAMEPAD, TOUCH }
 enum Claw { LEFT, RIGHT }
@@ -131,6 +133,8 @@ func _input(event: InputEvent) -> void:
 	# Mouse events synthesized from touch must not flip us to keyboard/mouse.
 	if event.device == InputEvent.DEVICE_ID_EMULATION:
 		return
+	if event.is_action_pressed("menu"):
+		menu_pressed.emit()
 	if event.is_action_pressed("interact"):
 		interact_pressed.emit(false)
 	elif event.is_action_pressed("interact_alt"):
@@ -172,6 +176,7 @@ func _register_default_bindings() -> void:
 	_bind("claw_right", [KEY_K], [JOY_BUTTON_B, JOY_BUTTON_RIGHT_SHOULDER], [[JOY_AXIS_TRIGGER_RIGHT, 1.0]])
 	_bind("interact", [KEY_E, KEY_F], [JOY_BUTTON_A], [])
 	_bind("interact_alt", [KEY_R], [JOY_BUTTON_Y], [])
+	_bind("menu", [KEY_ESCAPE], [JOY_BUTTON_START], [])
 
 
 func _bind(action: StringName, keys: Array, buttons: Array, axes: Array) -> void:

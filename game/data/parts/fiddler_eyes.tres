@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"fiddler_eyes"
+display_name = "Fiddler Eyes"
+slot = 0
+description = ""
+max_hp = 0
+attack = 2
+defense = 0
+speed = 0.5
+ability = &""
+color = Color(0.95, 0.85, 0.3, 1)
+accent = Color(0.1, 0.1, 0.1, 1)
+shape = {"stalk": 0.38, "eye": 0.06, "spread": 0.09}
+special = false

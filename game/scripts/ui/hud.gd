@@ -1,68 +1,93 @@
 class_name HUD
 extends CanvasLayer
-## Prototype HUD: HP + stats (top-left), what Debra is wearing (top-right),
-## the part under your feet with a stat comparison (bottom-centre), toasts.
+## In-level HUD: HP + stats + level progress (top-left), minimap and what
+## you're wearing (top-right), boss bar (top-centre), the part under your
+## feet with a stat comparison (bottom-centre), toasts, and the clear panel.
 
 var player: PlayerCrab
+var level: Level
 
 var _hp_bar: ProgressBar
 var _hp_label: Label
 var _stats: Label
-var _kills: Label
+var _progress: Label
 var _slots: Array[Label] = []
 var _prompt_panel: PanelContainer
 var _prompt: RichTextLabel
 var _toast: Label
 var _toast_left := 0.0
+var _boss_box: VBoxContainer
+var _boss_name: Label
+var _boss_bar: ProgressBar
+var _clear_panel: PanelContainer
+var _clear_text: Label
+var _minimap: Minimap
 
 
 func _ready() -> void:
 	layer = 5
 	var root := Control.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
-	# Top-left: HP and stats
+	# Top-left: name, HP, stats, level progress, MAP button
 	var tl := VBoxContainer.new()
 	tl.position = Vector2(20, 16)
 	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(tl)
-	tl.add_child(_label("DEBRA", 22, Color(1, 0.62, 0.4)))
-	_hp_bar = ProgressBar.new()
-	_hp_bar.custom_minimum_size = Vector2(260, 22)
-	_hp_bar.show_percentage = false
-	_hp_bar.add_theme_stylebox_override("background", _box(Color(0, 0, 0, 0.5)))
-	_hp_bar.add_theme_stylebox_override("fill", _box(Color(0.9, 0.3, 0.3)))
+	tl.add_child(_label(player.display_name.to_upper(), 20, Color(1, 0.62, 0.4)))
+	_hp_bar = _bar(Color(0.9, 0.3, 0.3), Vector2(260, 22))
 	tl.add_child(_hp_bar)
 	_hp_label = _label("", 16, Color.WHITE)
 	_hp_bar.add_child(_hp_label)
-	_hp_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_hp_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_stats = _label("", 18, Color(0.85, 0.95, 1.0))
+	_stats = _label("", 17, Color(0.85, 0.95, 1.0))
 	tl.add_child(_stats)
-	_kills = _label("", 16, Color(0.75, 0.85, 0.9))
-	tl.add_child(_kills)
+	_progress = _label("", 16, Color(1, 0.9, 0.7))
+	tl.add_child(_progress)
+	var map_btn := Button.new()
+	map_btn.text = "MAP"
+	map_btn.custom_minimum_size = Vector2(90, 40)
+	map_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	map_btn.focus_mode = Control.FOCUS_NONE
+	map_btn.pressed.connect(func() -> void: GameState.go_to_map())
+	tl.add_child(map_btn)
 
-	# Top-right: equipped parts
+	# Top-right: minimap + equipped parts
 	var tr := VBoxContainer.new()
 	root.add_child(tr)
-	tr.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 18)
+	tr.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 16)
 	tr.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	tr.alignment = BoxContainer.ALIGNMENT_BEGIN
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_minimap = Minimap.new()
+	_minimap.level = level
+	_minimap.size_flags_horizontal = Control.SIZE_SHRINK_END
+	tr.add_child(_minimap)
 	for s in Equipment.SOCKET_COUNT:
-		var l := _label("", 16, Color.WHITE)
+		var l := _label("", 14, Color.WHITE)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		tr.add_child(l)
 		_slots.append(l)
 
-	# Centre column: toast at the top, part-under-your-feet panel at the bottom
+	# Centre column: boss bar + toast at the top, part panel at the bottom
 	var col := VBoxContainer.new()
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(col)
 	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 24)
-	col.offset_top = 64
+	col.offset_top = 14
+	col.offset_left = 300
+	col.offset_right = -300
+	_boss_box = VBoxContainer.new()
+	_boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_box.visible = false
+	col.add_child(_boss_box)
+	_boss_name = _label("", 20, Color(1, 0.55, 0.45))
+	_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_boss_box.add_child(_boss_name)
+	_boss_bar = _bar(Color(0.75, 0.25, 0.6), Vector2(0, 16))
+	_boss_box.add_child(_boss_bar)
 	_toast = _label("", 26, Color.WHITE)
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(_toast)
@@ -86,9 +111,41 @@ func _ready() -> void:
 	_prompt.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_prompt_panel.add_child(_prompt)
 
+	# Level clear panel (centre)
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(center)
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_clear_panel = PanelContainer.new()
+	_clear_panel.add_theme_stylebox_override("panel", _box(Color(0.02, 0.08, 0.14, 0.92), 22))
+	_clear_panel.visible = false
+	center.add_child(_clear_panel)
+	var cv := VBoxContainer.new()
+	cv.add_theme_constant_override("separation", 14)
+	_clear_panel.add_child(cv)
+	var title := _label("LEVEL CLEAR", 34, Color(1, 0.85, 0.4))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cv.add_child(title)
+	_clear_text = _label("", 18, Color(0.85, 0.95, 1.0))
+	_clear_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cv.add_child(_clear_text)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 16)
+	cv.add_child(row)
+	var to_map := _button("Back to map")
+	to_map.pressed.connect(func() -> void: GameState.go_to_map())
+	row.add_child(to_map)
+	var keep := _button("Keep fighting")
+	keep.pressed.connect(func() -> void: _clear_panel.visible = false)
+	row.add_child(keep)
+
 	player.equipped.connect(_on_equipped)
 	player.respawned.connect(func() -> void: toast("Back home.", Color(0.7, 0.9, 1.0)))
-	player.died.connect(func(_c: Crab) -> void: toast("Debra got cracked...", Color(1, 0.5, 0.4)))
+	player.died.connect(func(_c: Creature) -> void: toast("%s got cracked..." % player.display_name.get_slice(" ", 0), Color(1, 0.5, 0.4)))
+	if level:
+		level.boss_spawned.connect(_on_boss_spawned)
+		level.cleared.connect(_on_cleared)
 
 
 func toast(text: String, col := Color.WHITE, sec := 2.2) -> void:
@@ -101,6 +158,23 @@ func _on_equipped(socket: int, part: PartInstance) -> void:
 	toast("%s: %s" % [Equipment.SOCKET_NAMES[socket], part.display_name()], Rarity.color_of(part.rarity))
 
 
+func _on_boss_spawned(b: Creature) -> void:
+	_boss_box.visible = true
+	_boss_name.text = b.display_name
+
+
+func _on_cleared(unlocked_next: bool) -> void:
+	var next: LevelData = GameState.next_level(level.level.id) if level.level else null
+	if unlocked_next and next:
+		_clear_text.text = "%s unlocked on the map." % next.display_name
+	elif next == null:
+		_clear_text.text = "You cleared the deepest part of the sea. For now."
+	else:
+		_clear_text.text = "Cleared again. The loot doesn't care."
+	_clear_panel.visible = true
+	toast("Level clear!", Color(1, 0.85, 0.4), 3.0)
+
+
 func _process(delta: float) -> void:
 	if player == null:
 		return
@@ -109,7 +183,20 @@ func _process(delta: float) -> void:
 	_hp_bar.value = h.hp
 	_hp_label.text = "%d / %d" % [ceili(h.hp), roundi(h.max_hp)]
 	_stats.text = "ATK %d   DEF %d   SPD %.1f" % [roundi(player.equipment.total(&"attack")), roundi(h.defense), player.move_speed]
-	_kills.text = "Kills: %d" % player.kills
+	if level and level.level:
+		var l := level.level
+		if level.is_cleared:
+			_progress.text = "%s  ·  cleared" % l.display_name
+		elif is_instance_valid(level.boss):
+			_progress.text = "%s  ·  boss!" % l.display_name
+		else:
+			_progress.text = "%s  ·  %d / %d" % [l.display_name, mini(level.kills, l.kill_goal), l.kill_goal]
+		var b := level.boss
+		if is_instance_valid(b) and not b.is_dead():
+			_boss_bar.max_value = b.health.max_hp
+			_boss_bar.value = b.health.hp
+		elif _boss_box.visible:
+			_boss_box.visible = false
 	for s in Equipment.SOCKET_COUNT:
 		var p := player.equipment.get_part(s)
 		_slots[s].text = "%s  ·  %s" % [p.display_name() if p else "-", Equipment.SOCKET_NAMES[s]]
@@ -175,6 +262,24 @@ func _label(text: String, fs: int, col: Color) -> Label:
 	l.add_theme_constant_override("outline_size", 5)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
+
+
+func _bar(col: Color, min_size: Vector2) -> ProgressBar:
+	var b := ProgressBar.new()
+	b.custom_minimum_size = min_size
+	b.show_percentage = false
+	b.add_theme_stylebox_override("background", _box(Color(0, 0, 0, 0.5)))
+	b.add_theme_stylebox_override("fill", _box(col))
+	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return b
+
+
+func _button(text: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(190, 52)
+	b.add_theme_font_size_override("font_size", 20)
+	return b
 
 
 func _box(col: Color, pad := 0) -> StyleBoxFlat:

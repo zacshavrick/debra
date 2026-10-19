@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/starfish_shell.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"starfish"
+display_name = "Starfish"
+kind = 1
+body_kind = &"starfish"
+size = 0.9
+base_hp = 22.0
+color = Color(0.95, 0.5, 0.25, 1)
+accent = Color(1, 0.8, 0.5, 1)
+speed = 1.4
+behaviour = &"drifter"
+attack = &"pulse"
+damage_mult = 0.45
+aggro_range = 6.0
+spawn_weight = 2.0
+drops = [ExtResource("2")]

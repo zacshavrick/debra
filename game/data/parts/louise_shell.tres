@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"louise_shell"
+display_name = "Louise's Carapace"
+slot = 1
+description = "Light. Very light."
+max_hp = 8
+attack = 0
+defense = 1
+speed = 1.5
+ability = &""
+color = Color(0.98, 0.6, 0.6, 1)
+accent = Color(0.98, 0.85, 0.8, 1)
+shape = {"kind": "lobster", "width": 0.72, "height": 0.27, "length": 0.75}
+special = false

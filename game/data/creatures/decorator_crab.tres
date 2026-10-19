@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/decorator_shell.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/shore_eyes.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/shore_pincer.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/spider_legs.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = &"decorator_crab"
+display_name = "Decorator Crab"
+size = 0.85
+base_hp = 28.0
+head = ExtResource("3")
+shell = ExtResource("2")
+claw_l = ExtResource("4")
+claw_r = ExtResource("4")
+legs = ExtResource("5")
+damage_mult = 0.5
+aggro_range = 6.0
+spawn_weight = 2.0

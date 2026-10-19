@@ -8,7 +8,7 @@ config_version=5
 config/name="Debra"
 config/description="Seafloor crustacean ARPG. You are what you kill."
 config/version="0.1.0"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/map.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/bg_color=Color(0.04, 0.12, 0.2, 1)
 config/icon="res://icon.svg"
@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 Platform="*res://scripts/core/platform.gd"
 PlayerInput="*res://scripts/input/player_input.gd"
+GameState="*res://scripts/core/game_state.gd"
 
 [display]
 

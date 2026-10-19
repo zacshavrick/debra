@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"gary_arm"
+display_name = "Gary's Long Arm"
+slot = 2
+description = "Reaches things other crabs can't."
+max_hp = 0
+attack = 3
+defense = 0
+speed = 0
+ability = &"lash"
+color = Color(0.78, 0.62, 0.4, 1)
+accent = Color(0.5, 0.32, 0.18, 1)
+shape = {"kind": "lash", "arm": 0.42, "size": 0.2}
+special = false

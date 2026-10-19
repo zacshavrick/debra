@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/lionfish_crest.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"lionfish"
+display_name = "Lionfish"
+kind = 1
+body_kind = &"lionfish"
+size = 0.9
+base_hp = 26.0
+hover = 0.6
+color = Color(0.9, 0.35, 0.2, 1)
+accent = Color(0.98, 0.92, 0.85, 1)
+speed = 2.6
+behaviour = &"ranged"
+attack = &"spit"
+damage_mult = 0.45
+aggro_range = 9.0
+preferred_range = 5.5
+spawn_weight = 1.5
+drops = [ExtResource("2")]

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"decorator_shell"
+display_name = "Decorated Shell"
+slot = 1
+description = "Wearing half the reef."
+max_hp = 22
+attack = 0
+defense = 3
+speed = 0
+ability = &""
+color = Color(0.45, 0.4, 0.35, 1)
+accent = Color(0.3, 0.25, 0.22, 1)
+shape = {"kind": "decorator", "width": 1.0, "height": 0.32, "length": 0.85}
+special = false

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/puffer_shell.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"pufferfish"
+display_name = "Pufferfish"
+kind = 1
+body_kind = &"puffer"
+size = 0.9
+base_hp = 28.0
+hover = 0.6
+color = Color(0.9, 0.8, 0.45, 1)
+accent = Color(0.5, 0.4, 0.2, 1)
+speed = 2.2
+behaviour = &"drifter"
+attack = &"spines"
+damage_mult = 0.45
+aggro_range = 7.0
+spawn_weight = 2.0
+drops = [ExtResource("2")]

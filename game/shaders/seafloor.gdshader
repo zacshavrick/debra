@@ -4,6 +4,7 @@ shader_type spatial;
 uniform vec4 sand_a : source_color = vec4(0.5, 0.45, 0.35, 1.0);
 uniform vec4 sand_b : source_color = vec4(0.36, 0.33, 0.26, 1.0);
 uniform float caustic_strength = 0.12;
+uniform float arena_radius = 22.0;
 
 varying vec3 world_pos;
 
@@ -24,8 +25,8 @@ void fragment() {
 	float patch = sin(p.x * 0.17) * sin(p.y * 0.21) * 0.5 + 0.5;
 	vec3 col = mix(sand_b.rgb, sand_a.rgb, ripple * 0.35 + patch * 0.65);
 	float r = length(p);
-	col *= mix(1.0, 0.55, smoothstep(20.0, 30.0, r));   // darker past the arena edge
+	col *= mix(1.0, 0.55, smoothstep(arena_radius - 2.0, arena_radius + 8.0, r));   // darker past the arena edge
 	ALBEDO = col;
 	ROUGHNESS = 0.95;
-	EMISSION = vec3(0.55, 0.85, 1.0) * caustic(p * 0.6, TIME) * caustic_strength * (1.0 - smoothstep(18.0, 28.0, r));
+	EMISSION = vec3(0.55, 0.85, 1.0) * caustic(p * 0.6, TIME) * caustic_strength * (1.0 - smoothstep(arena_radius - 4.0, arena_radius + 6.0, r));
 }

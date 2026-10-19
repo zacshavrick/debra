@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"king_shell"
+display_name = "King Crab Shell"
+slot = 1
+description = ""
+max_hp = 40
+attack = 2
+defense = 8
+speed = 0
+ability = &""
+color = Color(0.8, 0.2, 0.15, 1)
+accent = Color(0.95, 0.7, 0.4, 1)
+shape = {"kind": "dome", "width": 1.15, "height": 0.4, "length": 1.0, "spikes": 12, "spots": 6}
+special = false

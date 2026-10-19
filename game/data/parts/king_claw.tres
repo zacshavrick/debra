@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"king_claw"
+display_name = "King Crab Claw"
+slot = 2
+description = ""
+max_hp = 5
+attack = 10
+defense = 1
+speed = 0
+ability = &"crush"
+color = Color(0.8, 0.2, 0.15, 1)
+accent = Color(0.95, 0.7, 0.4, 1)
+shape = {"kind": "crusher", "arm": 0.36, "size": 0.38}
+special = false

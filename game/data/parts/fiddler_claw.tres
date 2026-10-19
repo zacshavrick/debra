@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"fiddler_claw"
+display_name = "Fiddler's Big Claw"
+slot = 2
+description = "Comically large. Hits like it."
+max_hp = 0
+attack = 8
+defense = 0
+speed = -0.5
+ability = &"crush"
+color = Color(0.95, 0.85, 0.3, 1)
+accent = Color(0.95, 0.95, 0.9, 1)
+shape = {"kind": "pincer", "arm": 0.36, "size": 0.46}
+special = false

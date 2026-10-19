@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"moray_jaw"
+display_name = "Moray Jaw"
+slot = 2
+description = "Bites, and you feel better for it."
+max_hp = 5
+attack = 6
+defense = 0
+speed = 0
+ability = &"bite"
+color = Color(0.35, 0.45, 0.2, 1)
+accent = Color(0.75, 0.7, 0.25, 1)
+shape = {"kind": "jaw", "arm": 0.32, "size": 0.26}
+special = false

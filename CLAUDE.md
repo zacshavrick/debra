@@ -1,6 +1,6 @@
 # Debra: guide for Claude
 
-A 3D crustacean ARPG in **Godot 4.7.2 (GDScript)**. It ships as a **Windows exe** and a **mobile web app**. Owner: Zac (`zacshavrick`). Claude is the project architect.
+A 3D crustacean ARPG (pick a crab, pick a level on the map, kill things, wear them) in **Godot 4.7.2 (GDScript)**. It ships as a **Windows exe** and a **mobile web app**. Owner: Zac (`zacshavrick`). Claude is the project architect.
 
 **Read first:** `docs/DESIGN.md` (the design; single source of truth) and `docs/ARCHITECTURE.md` (targets, part system, rig contract, decision log). Background: `projectContext/DEBRA_HANDOFF.md`.
 
@@ -19,7 +19,7 @@ To run Godot directly: `.tools/godot/Godot_v4.7.2-stable_win64_console.exe --pat
 - **Renderer is Compatibility.** No Forward+-only features, because they break the web build.
 - **Only `PlayerInput` reads input devices.** Every new action needs keyboard+mouse, gamepad **and touch**.
 - Heavy content scales with `Platform.is_low()` (phones).
-- **Parts are data.** Add a part by adding a `.tres` in `game/data/parts/`. Add a creature with a `.tres` in `game/data/creatures/`. Don't hard-code part lists.
+- **Parts, creatures and levels are data** (`game/data/parts|creatures|levels/*.tres`). Don't hard-code lists of them.
 - **Respect the rig contract** (ARCHITECTURE.md). Parts snap to sockets with zero offset.
 - **Keep combat in `scripts/combat/`.** It will be rebuilt 3–4 times. Don't let part code depend on combat details.
 - Keep transmog possible: look comes from `Equipment.get_displayed()`, stats from `get_part()`.
@@ -34,6 +34,8 @@ To run Godot directly: `.tools/godot/Godot_v4.7.2-stable_win64_console.exe --pat
 - Bias to action: pick reasonable defaults, say which ones you picked, and keep going.
 
 ## Status (2026-10-19)
-- Prototype milestone 1 is done: the shared rig with 5 sockets, 17 placeholder parts, Debra + 3 enemy types, drops with rolled rarity, equip with stat comparison, combat iteration #1 (pinch / crush / snap), the home can (respawn + heal), the HUD, touch controls, exe + web exports, and CI.
-- Not verified yet: touch input on a real phone (detection and drawing are checked; real finger input isn't).
-- Next candidates are in DESIGN.md → "Prototype milestone 1: status".
+- Milestone 1 is done: the shared rig, drops with rarity, equip, combat iteration #1, exe + web exports, and CI.
+- Milestone 2 is done: 5 starters (Debra the Lobster, Saul the Crab, Louise the Shrimp, plus Claude's picks Marjorie the Hermit Crab and Gary the Spider Crab), crab select, world map, 5 levels with bosses and unlocks, 21 creature types (10 non-crustaceans with their own bodies), 75 parts, 7 claw styles, poison, a saved game, and a minimap.
+- **Content is data.** A new creature is a `.tres` in `data/creatures/`. Add it to a level's `enemies` in `data/levels/`. A non-crustacean also needs a `body_kind` in `CritterVisual`.
+- Not verified yet: touch input on a real phone (detection and drawing are checked; real finger input isn't). Balance is first-pass.
+- Next candidates are in DESIGN.md → "Milestones".

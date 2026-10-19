@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/creatures/boss_reef_shark.tres" id="2"]
+[ext_resource type="Resource" path="res://data/creatures/jellyfish.tres" id="3"]
+[ext_resource type="Resource" path="res://data/creatures/lionfish.tres" id="4"]
+[ext_resource type="Resource" path="res://data/creatures/mantis_shrimp.tres" id="5"]
+[ext_resource type="Resource" path="res://data/creatures/pistol_shrimp.tres" id="6"]
+[ext_resource type="Resource" path="res://data/creatures/pufferfish.tres" id="7"]
+[ext_resource type="Resource" path="res://data/creatures/stingray.tres" id="8"]
+
+[resource]
+script = ExtResource("1")
+id = &"reef"
+display_name = "Coral Reef"
+description = "Loud colours, louder shrimp. Puffers, lionfish and stingrays."
+order = 2
+map_pos = Vector2(0.3, 0.53)
+radius = 24.0
+decor = &"reef"
+sand_a = Color(0.55, 0.48, 0.42, 1)
+sand_b = Color(0.4, 0.34, 0.33, 1)
+background = Color(0.05, 0.22, 0.38, 1)
+fog_color = Color(0.08, 0.28, 0.45, 1)
+fog_density = 0.03
+ambient = Color(0.45, 0.55, 0.75, 1)
+ambient_energy = 0.5
+sun_color = Color(0.85, 0.92, 1, 1)
+sun_energy = 0.85
+caustics = 0.16
+enemies = [ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("4"), ExtResource("8"), ExtResource("3")]
+max_alive = 6
+kill_goal = 16
+boss = ExtResource("2")
+difficulty = 1.8
+rarity_luck = 0.6

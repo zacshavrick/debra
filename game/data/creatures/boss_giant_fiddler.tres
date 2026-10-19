@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/fiddler_claw.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/fiddler_eyes.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/fiddler_nub.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/fiddler_shell.tres" id="5"]
+[ext_resource type="Resource" path="res://data/parts/shore_legs.tres" id="6"]
+
+[resource]
+script = ExtResource("1")
+id = &"boss_giant_fiddler"
+display_name = "Giant Fiddler Crab"
+boss = true
+size = 1.9
+base_hp = 200.0
+head = ExtResource("3")
+shell = ExtResource("5")
+claw_l = ExtResource("4")
+claw_r = ExtResource("2")
+legs = ExtResource("6")
+damage_mult = 0.7
+aggro_range = 30.0
+rarity_luck = 1.0

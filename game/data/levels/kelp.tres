@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/creatures/boss_rock_lobster.tres" id="2"]
+[ext_resource type="Resource" path="res://data/creatures/decorator_crab.tres" id="3"]
+[ext_resource type="Resource" path="res://data/creatures/hermit_crab.tres" id="4"]
+[ext_resource type="Resource" path="res://data/creatures/jellyfish.tres" id="5"]
+[ext_resource type="Resource" path="res://data/creatures/moray_eel.tres" id="6"]
+[ext_resource type="Resource" path="res://data/creatures/rock_lobster.tres" id="7"]
+[ext_resource type="Resource" path="res://data/creatures/shore_crab.tres" id="8"]
+
+[resource]
+script = ExtResource("1")
+id = &"kelp"
+display_name = "Kelp Forest"
+description = "Tall swaying kelp hides hermits, lobsters and eels."
+order = 1
+map_pos = Vector2(0.62, 0.36)
+radius = 24.0
+decor = &"kelp"
+sand_a = Color(0.42, 0.38, 0.28, 1)
+sand_b = Color(0.3, 0.28, 0.2, 1)
+background = Color(0.04, 0.2, 0.17, 1)
+fog_color = Color(0.06, 0.26, 0.2, 1)
+fog_density = 0.024
+ambient = Color(0.35, 0.5, 0.45, 1)
+ambient_energy = 0.55
+sun_color = Color(0.75, 1, 0.8, 1)
+sun_energy = 0.85
+caustics = 0.1
+enemies = [ExtResource("4"), ExtResource("7"), ExtResource("3"), ExtResource("6"), ExtResource("5"), ExtResource("8")]
+max_alive = 6
+kill_goal = 14
+boss = ExtResource("2")
+difficulty = 1.35
+rarity_luck = 0.3

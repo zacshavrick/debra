@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"marjorie_legs"
+display_name = "Marjorie's Legs"
+slot = 3
+description = ""
+max_hp = 5
+attack = 0
+defense = 2
+speed = 3
+ability = &""
+color = Color(0.62, 0.38, 0.55, 1)
+accent = Color(0.45, 0.25, 0.4, 1)
+shape = {"length": 0.9, "thick": 0.045}
+special = false

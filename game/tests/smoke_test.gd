@@ -1,38 +1,47 @@
 extends Node
 ## Headless smoke test. Exit code 0 = pass.
 ##   godot --headless --path game res://tests/smoke_test.tscn
-## Mirrors the prototype's "done when" list (docs/DESIGN.md):
-##  - every slot accepts any crustacean part with no misalignment
-##  - killing an enemy drops a part with a rolled rarity
-##  - equipping a part changes both appearance and a visible stat
-##  - swapping arms changes how an attack works
+## Covers the prototype "done when" list plus milestone 2 (levels, map,
+## starters, sea creatures). Uses a throwaway save file.
+
+const TEST_SAVE := "user://smoke_test_save.json"
+const BEHAVIOURS := [&"melee", &"ranged", &"charger", &"drifter", &"turret", &"ambusher"]
 
 var _failures: Array[String] = []
-var arena: Arena
+var level: Level
 var player: PlayerCrab
 
 
 func _ready() -> void:
-	arena = load("res://scenes/main.tscn").instantiate()
-	arena.rng.seed = 1234
-	add_child(arena)
-	arena.auto_spawn = false
-	arena.rng.seed = 1234
-	for e in get_tree().get_nodes_in_group("enemies"):
-		e.queue_free()
-	player = arena.player
-	await _frames(5)
-
+	GameState.use_save_file(TEST_SAVE)
 	_test_data()
 	await _test_sockets_and_alignment()
-	await _test_movement()
-	await _test_kill_drops_part()
-	await _test_equip_changes_look_and_stats()
-	await _test_claw_swap_changes_attack()
-	await _test_enemy_fights_back()
-	await _test_death_and_respawn()
-	_test_rarity_roll()
 
+	level = load("res://scenes/level.tscn").instantiate()
+	level.level = GameState.level(&"shallows")
+	level.starter = GameState.starter_data(&"debra")
+	add_child(level)
+	level.auto_spawn = false
+	level.rng.seed = 1234
+	_clear_enemies()
+	player = level.player
+	await _frames(5)
+	_check(player.display_name == "Debra the Lobster", "Debra is the lobster (%s)" % player.display_name)
+
+	await _test_movement()
+	await _test_every_creature()
+	await _test_equip_changes_look_and_stats()
+	await _test_claw_styles()
+	await _test_enemies_fight_back()
+	await _test_level_flow()
+	await _test_death_and_respawn()
+	_test_save_roundtrip()
+	_test_rarity_roll()
+	level.queue_free()
+	await _frames(3)
+	await _test_screens()
+
+	DirAccess.remove_absolute(TEST_SAVE)
 	for f in _failures:
 		printerr("FAIL: ", f)
 	print("SMOKE TEST %s (%d failures)" % ["PASSED" if _failures.is_empty() else "FAILED", _failures.size()])
@@ -41,7 +50,7 @@ func _ready() -> void:
 
 func _test_data() -> void:
 	var parts := PartCatalog.all_parts()
-	_check(parts.size() >= 12, "part catalog loads (%d parts)" % parts.size())
+	_check(parts.size() >= 60, "part catalog loads (%d parts)" % parts.size())
 	var ids := {}
 	for p in parts:
 		_check(not ids.has(p.id), "part id unique: %s" % p.id)
@@ -49,13 +58,41 @@ func _test_data() -> void:
 		if p.slot == PartData.Slot.CLAW:
 			_check(CrabCombat.STYLES.has(p.ability), "claw %s has a known attack style (%s)" % [p.id, p.ability])
 	var creatures := PartCatalog.all_creatures()
-	_check(creatures.size() >= 4, "creatures load (%d)" % creatures.size())
+	_check(creatures.size() >= 25, "creatures load (%d)" % creatures.size())
+	var critters := 0
 	for c in creatures:
-		var lo := c.loadout()
-		for s in Equipment.SOCKET_COUNT:
-			_check(lo[s] != null and Equipment.accepts(s, lo[s].slot), "%s loadout fits socket %s" % [c.id, Equipment.SOCKET_NAMES[s]])
+		if c.is_crustacean():
+			var lo := c.loadout()
+			for s in Equipment.SOCKET_COUNT:
+				_check(lo[s] != null and Equipment.accepts(s, lo[s].slot), "%s loadout fits socket %s" % [c.id, Equipment.SOCKET_NAMES[s]])
+		else:
+			critters += 1
+			_check(CritterVisual.KINDS.has(c.body_kind), "%s has a known body (%s)" % [c.id, c.body_kind])
+			_check(CritterAttack.ATTACKS.has(c.attack), "%s has a known attack (%s)" % [c.id, c.attack])
+			_check(BEHAVIOURS.has(c.behaviour), "%s has a known behaviour (%s)" % [c.id, c.behaviour])
+			_check(c.drops.size() >= 1 and c.drops.size() <= 2, "%s drops 1-2 parts (%d)" % [c.id, c.drops.size()])
+			_check(c.playable == false, "%s (non-crustacean) is not playable" % c.id)
 		for sp in c.special_drops:
 			_check(sp is PartData and (sp as PartData).special, "%s special drop is flagged special" % c.id)
+	_check(critters >= 10, "at least 10 non-crustacean creatures (%d)" % critters)
+	for id in GameState.STARTERS:
+		var s := GameState.starter_data(id)
+		_check(s != null and s.playable and s.is_crustacean(), "starter %s exists and is a playable crustacean" % id)
+	var names := ""
+	for id in GameState.STARTERS:
+		names += GameState.starter_data(id).display_name + ","
+	for want in ["Saul the Crab", "Debra the Lobster", "Louise the Shrimp"]:
+		_check(names.contains(want), "starter roster has %s" % want)
+	var levels := GameState.levels()
+	_check(levels.size() == 5, "5 levels (%d)" % levels.size())
+	for i in levels.size():
+		var l := levels[i]
+		_check(l.order == i, "level %s order %d" % [l.id, l.order])
+		_check(not l.enemy_list().is_empty(), "level %s has creatures" % l.id)
+		_check(l.boss != null and l.boss.boss, "level %s has a boss" % l.id)
+		for e in l.enemy_list():
+			_check(not e.playable and not e.boss, "level %s enemy %s is a regular creature" % [l.id, e.id])
+	_check(GameState.is_unlocked(&"shallows") and not GameState.is_unlocked(&"kelp"), "fresh save: only level 1 unlocked")
 
 
 ## Every part in every socket that accepts it: snaps to the socket origin, has
@@ -69,11 +106,11 @@ func _test_sockets_and_alignment() -> void:
 	for p in PartCatalog.all_parts():
 		for socket in Equipment.sockets_for(p.slot):
 			body.show_part(socket, PartInstance.new(p, Rarity.Tier.EPIC))
-			await _seconds(0.3)   # let the equip "pop" tween settle
+			await _seconds(0.28)   # let the equip "pop" tween settle
 			var sock := body.get_socket(socket)
 			_check(sock.get_child_count() == 1, "%s: one visual in %s" % [p.id, sock.name])
 			var v := sock.get_child(0) as Node3D
-			_check(v.transform.is_equal_approx(Transform3D.IDENTITY) or v.position.is_zero_approx(), "%s snaps to socket origin" % p.id)
+			_check(v.position.is_zero_approx(), "%s snaps to socket origin" % p.id)
 			var box := _aabb(v)
 			_check(box.size.length() > 0.05, "%s has geometry" % p.id)
 			var local_center := box.get_center() - sock.global_position
@@ -98,33 +135,46 @@ func _test_movement() -> void:
 	_check(player.global_position.y > -0.3, "player stays on the floor (y %.2f)" % player.global_position.y)
 
 
-func _test_kill_drops_part() -> void:
-	var shore := PartCatalog.creature(&"shore_crab")
-	var e := arena.spawn_enemy(shore, player.global_position + Vector3(0, 0, -6))
-	await _frames(3)
-	var before := get_tree().get_nodes_in_group("pickups").size()
-	var guard := 0
-	while not e.is_dead() and guard < 50:
-		e.receive_hit(100.0, player.global_position, 0.0, player)
-		guard += 1
-	await _frames(3)
-	var pickups := get_tree().get_nodes_in_group("pickups")
-	_check(pickups.size() == before + 1, "a kill drops one part (%d -> %d)" % [before, pickups.size()])
-	if pickups.size() > before:
-		var pk := pickups[pickups.size() - 1] as PartPickup
-		_check(pk.part.rarity >= Rarity.Tier.COMMON and pk.part.rarity <= Rarity.Tier.EPIC, "dropped part has a rolled rarity")
-		_check(shore.drop_pool().has(pk.part.data), "drop comes from the creature's own parts (%s)" % pk.part.data.id)
-		pk.queue_free()
-	_check(player.kills == 1, "kill counted")
-	await _seconds(DESPAWN_WAIT)
-
-
-const DESPAWN_WAIT := 1.8
+## Every creature (including bosses) spawns, can be killed, and drops from its own pool.
+func _test_every_creature() -> void:
+	player.global_position = Vector3(0, 0, 0)
+	for c in PartCatalog.all_creatures():
+		if c.playable:
+			continue
+		var before := get_tree().get_nodes_in_group("pickups").size()
+		var e := level.spawn_enemy(c, Vector3(0, 0, -9), false)
+		await _frames(4)
+		_check(is_instance_valid(e) and not e.is_dead(), "%s spawns alive" % c.id)
+		if not c.is_crustacean():
+			_check((e as Critter).visual != null and (e as Critter).visual.get_child_count() > 0, "%s has a body" % c.id)
+		var guard := 0
+		while not e.is_dead() and guard < 100:
+			e.receive_hit(1000.0, player.global_position, 0.0, player)
+			guard += 1
+		await _frames(3)
+		var pickups := get_tree().get_nodes_in_group("pickups")
+		var expected := 2 if c.boss else 1
+		_check(pickups.size() == before + expected, "%s drops %d part(s) (%d -> %d)" % [c.id, expected, before, pickups.size()])
+		var pool := c.drop_pool()
+		for i in range(before, pickups.size()):
+			var pk := pickups[i] as PartPickup
+			_check(pool.has(pk.part.data), "%s drops its own parts (%s)" % [c.id, pk.part.data.id])
+			_check(pk.part.rarity >= 0 and pk.part.rarity <= Rarity.Tier.EPIC, "%s drop has a rolled rarity" % c.id)
+		for i in range(before, pickups.size()):
+			pickups[i].remove_from_group("pickups")
+			pickups[i].queue_free()
+		player.health.fill()
+	await _seconds(1.8)
+	level.boss = null
+	level.kills = 0
+	_clear_enemies()
+	_check(player.kills > 20, "kills counted (%d)" % player.kills)
 
 
 func _test_equip_changes_look_and_stats() -> void:
+	player.global_position = Vector3(0, 0, 0)
 	var conch := PartInstance.new(PartCatalog.by_id(&"hermit_shell"), Rarity.Tier.EPIC)
-	var pk := PartPickup.spawn(arena, player.global_position + player.facing * 0.5, conch, false)
+	var pk := PartPickup.spawn(level, player.global_position + player.facing * 0.5, conch, false)
 	await _seconds(0.7)
 	_check(player.focused_pickup == pk, "standing on a part focuses it")
 	var hp_before := player.health.max_hp
@@ -133,7 +183,7 @@ func _test_equip_changes_look_and_stats() -> void:
 	await _frames(2)
 	_check(player.equipment.get_part(Equipment.Socket.SHELL) == conch, "interact equips the part")
 	var shell_socket := player.body.get_socket(Equipment.Socket.SHELL)
-	_check(shell_socket.get_child_count() >= 1 and shell_socket.get_child(shell_socket.get_child_count() - 1).name == "hermit_shell", "shell socket shows the new look")
+	_check(shell_socket.get_child(shell_socket.get_child_count() - 1).name == "hermit_shell", "shell socket shows the new look")
 	_check(player.health.max_hp > hp_before, "max HP went up (%.0f -> %.0f)" % [hp_before, player.health.max_hp])
 	_check(player.health.defense > def_before, "DEF went up (%.1f -> %.1f)" % [def_before, player.health.defense])
 	var dropped := false
@@ -141,37 +191,84 @@ func _test_equip_changes_look_and_stats() -> void:
 		if (n as PartPickup).part.data.id == &"debra_shell":
 			dropped = true
 	_check(dropped, "old shell dropped on the floor")
+	_check(GameState.loadout_for(&"debra")[Equipment.Socket.SHELL].data.id == &"hermit_shell", "mutation saved for Debra")
 
 
-func _test_claw_swap_changes_attack() -> void:
-	player.equip_part(Equipment.Socket.CLAW_L, PartInstance.new(PartCatalog.by_id(&"mantis_snapper")))
-	await _seconds(0.7)
-	var shots_before := get_tree().get_nodes_in_group("projectiles").size()
-	PlayerInput.press_claw(PlayerInput.Claw.LEFT, 0.05)
-	await _seconds(0.15)
-	_check(player.combat.last_style[0] == &"snap", "snapper claw snaps (got %s)" % player.combat.last_style[0])
-	_check(get_tree().get_nodes_in_group("projectiles").size() > shots_before, "snapper fires a bubble")
+func _test_claw_styles() -> void:
+	player.global_position = Vector3(0, 0, 0)
+	player.face_now(Vector3.FORWARD)
+	var claws := {&"pinch": &"saul_pincer", &"crush": &"hermit_crusher", &"snap": &"mantis_snapper", &"cut": &"lobster_cutter",
+		&"bite": &"shark_jaw", &"lash": &"spider_arm", &"sting": &"ray_stinger"}
+	for style in claws:
+		player.equip_part(Equipment.Socket.CLAW_L, PartInstance.new(PartCatalog.by_id(claws[style])))
+		await _seconds(0.3)
+		var dist := 5.0 if style == &"snap" else 1.6
+		var dummy := level.spawn_enemy(PartCatalog.creature(&"giant_isopod"), player.global_position + Vector3(0, 0, -dist), false)
+		dummy.creature.aggro_range = 0.0
+		await _frames(2)
+		player.health.hp = player.health.max_hp * 0.5
+		var shots := get_tree().get_nodes_in_group("projectiles").size()
+		var hp0 := dummy.health.hp
+		var my_hp := player.health.hp
+		PlayerInput.set_override(Vector2.ZERO, Vector3.FORWARD)
+		PlayerInput.press_claw(PlayerInput.Claw.LEFT, 0.05)
+		await _seconds(0.12)
+		_check(player.combat.last_style[0] == style, "%s claw uses %s (got %s)" % [claws[style], style, player.combat.last_style[0]])
+		if style == &"snap":
+			_check(get_tree().get_nodes_in_group("projectiles").size() > shots, "snap fires a bubble")
+		await _seconds(0.5)
+		_check(dummy.health.hp < hp0, "%s hits the target (%.0f -> %.0f)" % [style, hp0, dummy.health.hp])
+		if style == &"bite":
+			_check(player.health.hp > my_hp, "bite heals (%.1f -> %.1f)" % [my_hp, player.health.hp])
+		if style == &"sting":
+			var after := dummy.health.hp
+			await _seconds(1.2)
+			_check(dummy.health.hp < after, "sting poisons over time (%.1f -> %.1f)" % [after, dummy.health.hp])
+		PlayerInput.set_override(null)
+		dummy.creature.aggro_range = 6.0
+		dummy.queue_free()
+		await _seconds(0.9)
+	player.equip_part(Equipment.Socket.CLAW_L, PartInstance.new(PartCatalog.by_id(&"spider_arm")))
+	player.equip_part(Equipment.Socket.CLAW_R, PartInstance.new(PartCatalog.by_id(&"saul_pincer")))
+	_check(player.combat.attack_range(0) > player.combat.attack_range(1) * 1.5, "lash reaches further than a pincer")
 	player.equip_part(Equipment.Socket.CLAW_L, PartInstance.new(PartCatalog.by_id(&"hermit_crusher")))
-	await _seconds(0.7)
-	PlayerInput.press_claw(PlayerInput.Claw.LEFT, 0.05)
-	await _seconds(0.1)
-	_check(player.combat.last_style[0] == &"crush", "crusher claw crushes (got %s)" % player.combat.last_style[0])
-	var crush_dmg := player.combat.damage_for(0)
-	var pinch_dmg := player.combat.damage_for(1)
-	_check(crush_dmg > pinch_dmg, "crusher hits harder than a pincer (%.1f vs %.1f)" % [crush_dmg, pinch_dmg])
-	_check(player.combat.attack_range(0) > player.combat.attack_range(1) * 0.9, "crusher reach")
-	await _seconds(1.2)
+	_check(player.combat.damage_for(0) > player.combat.damage_for(1), "crusher hits harder than a pincer")
+	_clear_enemies()
 
 
-func _test_enemy_fights_back() -> void:
-	player.global_position = Vector3(0, 0, 3)   # open ground, away from the healing home
+func _test_enemies_fight_back() -> void:
+	for id in [&"shore_crab", &"octopus", &"moray_eel", &"jellyfish"]:
+		player.global_position = Vector3(0, 0, 3)
+		player.health.fill()
+		var e := level.spawn_enemy(PartCatalog.creature(id), player.global_position + Vector3(2.5, 0, 0), false)
+		var hp := player.health.hp
+		await _seconds(4.0)
+		_check(player.health.hp < hp, "%s fights back (%.0f -> %.0f)" % [id, hp, player.health.hp])
+		e.queue_free()
+		_clear_projectiles()
+		await _frames(2)
 	player.health.fill()
-	var e := arena.spawn_enemy(PartCatalog.creature(&"shore_crab"), player.global_position + Vector3(1.5, 0, 0))
-	var hp := player.health.hp
-	await _seconds(2.5)
-	_check(player.health.hp < hp, "enemies fight back (%.0f -> %.0f)" % [hp, player.health.hp])
-	e.queue_free()
+
+
+func _test_level_flow() -> void:
+	_check(not GameState.is_unlocked(&"kelp"), "kelp locked before the clear")
+	level.kills = level.level.kill_goal - 1
+	var e := level.spawn_enemy(PartCatalog.creature(&"shore_crab"), Vector3(6, 0, 6))
 	await _frames(2)
+	e.receive_hit(1000.0, Vector3.ZERO, 0.0, player)
+	await _frames(3)
+	_check(is_instance_valid(level.boss), "reaching the kill goal brings the boss")
+	if is_instance_valid(level.boss):
+		_check(level.boss.is_boss and level.boss.size > 1.5, "the boss is big")
+		while not level.boss.is_dead():
+			level.boss.receive_hit(1000.0, Vector3.ZERO, 0.0, player)
+		await _frames(3)
+	_check(level.is_cleared, "beating the boss clears the level")
+	_check(GameState.is_cleared(&"shallows"), "clear is saved")
+	_check(GameState.is_unlocked(&"kelp"), "clearing level 1 unlocks level 2")
+	_check(not GameState.is_unlocked(&"reef"), "level 3 still locked")
+	await _seconds(1.8)
+	_clear_enemies()
 
 
 func _test_death_and_respawn() -> void:
@@ -182,6 +279,22 @@ func _test_death_and_respawn() -> void:
 	_check(not player.is_dead(), "player respawns")
 	_check(player.global_position.distance_to(player.home_position) < 1.0, "respawn at home")
 	_check(is_equal_approx(player.health.hp, player.health.max_hp), "respawn with full HP")
+
+
+func _test_save_roundtrip() -> void:
+	GameState.choose_starter(&"louise")
+	var eq := Equipment.new()
+	for s in Equipment.SOCKET_COUNT:
+		eq.equip(s, GameState.loadout_for(&"louise")[s])
+	eq.equip(Equipment.Socket.HEAD, PartInstance.new(PartCatalog.by_id(&"angler_lure"), Rarity.Tier.RARE))
+	GameState.store_loadout(&"louise", eq)
+	eq.free()
+	GameState.load_game()
+	_check(GameState.starter == &"louise", "starter survives a reload")
+	var head := GameState.loadout_for(&"louise")[Equipment.Socket.HEAD]
+	_check(head.data.id == &"angler_lure" and head.rarity == Rarity.Tier.RARE, "mutations survive a reload")
+	_check(GameState.is_cleared(&"shallows"), "clears survive a reload")
+	_check(GameState.loadout_for(&"saul")[Equipment.Socket.SHELL].data.id == &"saul_shell", "other crabs keep their default parts")
 
 
 func _test_rarity_roll() -> void:
@@ -197,7 +310,34 @@ func _test_rarity_roll() -> void:
 	_check(lucky[3] > counts[3], "luck raises epic odds (%d vs %d)" % [lucky[3], counts[3]])
 
 
+func _test_screens() -> void:
+	var sel: CrabSelect = load("res://scenes/select.tscn").instantiate()
+	add_child(sel)
+	await _frames(5)
+	_check(sel.crabs.size() == 5, "crab select shows 5 starters")
+	_check(sel.crabs[GameState.STARTERS.find(&"louise")].get_socket(Equipment.Socket.HEAD).get_child(0).name == "angler_lure", "crab select shows saved mutations")
+	sel.queue_free()
+	await _frames(2)
+	var map: WorldMap = load("res://scenes/map.tscn").instantiate()
+	add_child(map)
+	await _frames(5)
+	_check(map.get_child_count() > 5, "world map builds")
+	map.queue_free()
+	await _frames(2)
+
+
 # --- Helpers -------------------------------------------------------------------------
+
+func _clear_enemies() -> void:
+	for e in get_tree().get_nodes_in_group("enemies"):
+		e.queue_free()
+	_clear_projectiles()
+
+
+func _clear_projectiles() -> void:
+	for p in get_tree().get_nodes_in_group("projectiles"):
+		p.queue_free()
+
 
 func _aabb(n: Node) -> AABB:
 	var box := AABB()

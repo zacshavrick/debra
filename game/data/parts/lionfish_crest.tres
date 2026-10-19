@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lionfish_crest"
+display_name = "Lionfish Crest"
+slot = 0
+description = ""
+max_hp = 0
+attack = 6
+defense = 0
+speed = 0
+ability = &""
+color = Color(0.9, 0.35, 0.2, 1)
+accent = Color(0.98, 0.92, 0.85, 1)
+shape = {"stalk": 0.16, "eye": 0.065, "antennae": 0, "extra": "crest"}
+special = false

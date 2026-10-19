@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/jelly_bell.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"jellyfish"
+display_name = "Jellyfish"
+kind = 1
+body_kind = &"jelly"
+size = 0.9
+base_hp = 18.0
+hover = 1.1
+color = Color(0.75, 0.55, 1, 1)
+accent = Color(1, 0.6, 0.9, 1)
+speed = 1.6
+behaviour = &"drifter"
+attack = &"pulse"
+damage_mult = 0.45
+aggro_range = 8.0
+spawn_weight = 1.5
+drops = [ExtResource("2")]

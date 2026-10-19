@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lobster_eyes"
+display_name = "Lobster Antennae"
+slot = 0
+description = ""
+max_hp = 5
+attack = 2
+defense = 1
+speed = 0
+ability = &""
+color = Color(0.25, 0.3, 0.38, 1)
+accent = Color(0.75, 0.3, 0.2, 1)
+shape = {"stalk": 0.18, "eye": 0.065, "antennae": 2, "antenna_len": 1.1}
+special = false

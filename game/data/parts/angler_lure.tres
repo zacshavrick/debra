@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"angler_lure"
+display_name = "Angler Lure"
+slot = 0
+description = "A light of your own."
+max_hp = 0
+attack = 4
+defense = 1
+speed = 0
+ability = &""
+color = Color(0.2, 0.18, 0.22, 1)
+accent = Color(0.6, 1.0, 0.8, 1)
+shape = {"stalk": 0.14, "eye": 0.06, "antennae": 0, "extra": "lure"}
+special = false

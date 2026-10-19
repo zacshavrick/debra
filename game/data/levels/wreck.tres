@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/creatures/anglerfish.tres" id="2"]
+[ext_resource type="Resource" path="res://data/creatures/boss_coconut_crab.tres" id="3"]
+[ext_resource type="Resource" path="res://data/creatures/coconut_crab.tres" id="4"]
+[ext_resource type="Resource" path="res://data/creatures/moray_eel.tres" id="5"]
+[ext_resource type="Resource" path="res://data/creatures/octopus.tres" id="6"]
+[ext_resource type="Resource" path="res://data/creatures/rock_lobster.tres" id="7"]
+[ext_resource type="Resource" path="res://data/creatures/spider_crab.tres" id="8"]
+
+[resource]
+script = ExtResource("1")
+id = &"wreck"
+display_name = "Sunken Wreck"
+description = "A broken ship in the gloom. Spider crabs, octopuses, lobsters."
+order = 3
+map_pos = Vector2(0.68, 0.7)
+radius = 25.0
+decor = &"wreck"
+sand_a = Color(0.36, 0.34, 0.3, 1)
+sand_b = Color(0.26, 0.25, 0.23, 1)
+background = Color(0.03, 0.1, 0.15, 1)
+fog_color = Color(0.04, 0.13, 0.18, 1)
+fog_density = 0.04
+ambient = Color(0.3, 0.42, 0.5, 1)
+ambient_energy = 0.5
+sun_color = Color(0.6, 0.78, 0.9, 1)
+sun_energy = 0.7
+caustics = 0.05
+enemies = [ExtResource("8"), ExtResource("6"), ExtResource("5"), ExtResource("7"), ExtResource("2"), ExtResource("4")]
+max_alive = 7
+kill_goal = 18
+boss = ExtResource("3")
+difficulty = 2.4
+rarity_luck = 1.0

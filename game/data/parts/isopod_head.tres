@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"isopod_head"
+display_name = "Isopod Head"
+slot = 0
+description = ""
+max_hp = 15
+attack = 0
+defense = 3
+speed = -0.5
+ability = &""
+color = Color(0.7, 0.68, 0.78, 1)
+accent = Color(0.15, 0.15, 0.2, 1)
+shape = {"stalk": 0.06, "eye": 0.09, "spread": 0.16, "antennae": 2, "antenna_len": 0.3}
+special = false

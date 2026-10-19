@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/octo_tentacles.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"octopus"
+display_name = "Octopus"
+kind = 1
+body_kind = &"octopus"
+size = 1.0
+base_hp = 40.0
+color = Color(0.85, 0.35, 0.3, 1)
+accent = Color(0.95, 0.6, 0.5, 1)
+speed = 3.0
+behaviour = &"ranged"
+attack = &"ink"
+damage_mult = 0.5
+aggro_range = 9.0
+preferred_range = 5.0
+spawn_weight = 2.0
+drops = [ExtResource("2")]

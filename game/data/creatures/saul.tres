@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/saul_eyes.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/saul_legs.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/saul_pincer.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/saul_shell.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = &"saul"
+display_name = "Saul the Crab"
+playable = true
+blurb = "Two honest pincers. Does what it says on the shell."
+base_hp = 50.0
+head = ExtResource("2")
+shell = ExtResource("5")
+claw_l = ExtResource("4")
+claw_r = ExtResource("4")
+legs = ExtResource("3")
+damage_mult = 1.0

@@ -5,15 +5,15 @@
 [resource]
 script = ExtResource("1")
 id = &"debra_shell"
-display_name = "Debra's Shell"
+display_name = "Debra's Tail Shell"
 slot = 1
-description = "A plain, honest carapace."
-max_hp = 20.0
-attack = 0.0
-defense = 2.0
-speed = 0.0
+description = "Carapace and a tail to match."
+max_hp = 22
+attack = 0
+defense = 3
+speed = 0
 ability = &""
-color = Color(0.93, 0.47, 0.25, 1)
-accent = Color(0.62, 0.25, 0.12, 1)
-shape = {"kind": "dome", "width": 1.0, "height": 0.34, "length": 0.86, "spots": 3}
+color = Color(0.93, 0.42, 0.22, 1)
+accent = Color(0.72, 0.25, 0.12, 1)
+shape = {"kind": "lobster", "width": 0.9, "height": 0.32, "length": 0.8}
 special = false

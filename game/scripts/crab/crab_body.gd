@@ -86,9 +86,10 @@ func play_attack(socket: int, style: StringName, windup: float) -> void:
 	tw.tween_property(s, "position", rest, 0.18)
 	if jaw:
 		var sign_: float = jaw.get_meta("open_sign", 1.0)
+		var prop := "rotation:x" if jaw.get_meta("open_axis", "y") == "x" else "rotation:y"
 		var jt := create_tween()
-		jt.tween_property(jaw, "rotation:y", sign_ * 0.7, maxf(windup, 0.04))
-		jt.tween_property(jaw, "rotation:y", 0.0, 0.05)
+		jt.tween_property(jaw, prop, sign_ * 0.7, maxf(windup, 0.04))
+		jt.tween_property(jaw, prop, 0.0, 0.05)
 
 
 ## Brief white flash when hit.

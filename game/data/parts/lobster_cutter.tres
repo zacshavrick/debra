@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lobster_cutter"
+display_name = "Lobster Cutter"
+slot = 2
+description = ""
+max_hp = 0
+attack = 5
+defense = 0
+speed = 0.5
+ability = &"cut"
+color = Color(0.25, 0.3, 0.38, 1)
+accent = Color(0.75, 0.3, 0.2, 1)
+shape = {"kind": "cutter", "arm": 0.34, "size": 0.26}
+special = false

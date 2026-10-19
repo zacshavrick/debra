@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/creatures/anglerfish.tres" id="2"]
+[ext_resource type="Resource" path="res://data/creatures/boss_king_crab.tres" id="3"]
+[ext_resource type="Resource" path="res://data/creatures/giant_isopod.tres" id="4"]
+[ext_resource type="Resource" path="res://data/creatures/jellyfish.tres" id="5"]
+[ext_resource type="Resource" path="res://data/creatures/reef_shark.tres" id="6"]
+[ext_resource type="Resource" path="res://data/creatures/spider_crab.tres" id="7"]
+[ext_resource type="Resource" path="res://data/creatures/urchin.tres" id="8"]
+
+[resource]
+script = ExtResource("1")
+id = &"abyss"
+display_name = "The Abyss"
+description = "No sunlight. Things glow. Isopods, anglers, sharks. The King waits."
+order = 4
+map_pos = Vector2(0.42, 0.88)
+radius = 26.0
+decor = &"abyss"
+sand_a = Color(0.2, 0.2, 0.26, 1)
+sand_b = Color(0.12, 0.12, 0.17, 1)
+background = Color(0.01, 0.02, 0.06, 1)
+fog_color = Color(0.02, 0.03, 0.08, 1)
+fog_density = 0.05
+ambient = Color(0.3, 0.36, 0.6, 1)
+ambient_energy = 0.7
+sun_color = Color(0.4, 0.5, 0.8, 1)
+sun_energy = 0.45
+caustics = 0.0
+enemies = [ExtResource("4"), ExtResource("2"), ExtResource("6"), ExtResource("5"), ExtResource("7"), ExtResource("8")]
+max_alive = 7
+kill_goal = 20
+boss = ExtResource("3")
+difficulty = 3.2
+rarity_luck = 1.5
