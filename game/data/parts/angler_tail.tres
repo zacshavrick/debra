@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"angler_tail"
+display_name = "Angler Stalk"
+slot = 4
+description = "Everything comes to the light. EVERYTHING."
+max_hp = 5
+attack = 1
+defense = 0
+speed = 0
+ability = &"lure"
+color = Color(0.2, 0.18, 0.22, 1)
+accent = Color(0.6, 1.0, 0.8, 1)
+shape = {"kind": "lure", "length": 1.0}
+special = false

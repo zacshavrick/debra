@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/hammer_head.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/shark_tail.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"hammerhead"
+min_depth = 8
+display_name = "Hammerhead"
+kind = 1
+body_kind = &"hammerhead"
+size = 1.4
+base_hp = 70.0
+hover = 0.6
+color = Color(0.45, 0.5, 0.55, 1)
+accent = Color(0.35, 0.4, 0.45, 1)
+speed = 4.6
+behaviour = &"charger"
+attack = &"pierce"
+damage_mult = 0.55
+aggro_range = 11.0
+spawn_weight = 1.0
+drops = [ExtResource("2"), ExtResource("3")]
+rarity_luck = 0.5

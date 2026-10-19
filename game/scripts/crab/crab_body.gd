@@ -13,17 +13,20 @@ extends Node3D
 ## whole CrabBody. Also plays the placeholder procedural animation.
 
 const TORSO_Y := 0.45
-const SOCKET_NAMES := ["Socket_Head", "Socket_Shell", "Socket_ClawL", "Socket_ClawR", "Socket_Legs"]
+const SOCKET_NAMES := ["Socket_Head", "Socket_Shell", "Socket_ClawL", "Socket_ClawR", "Socket_Legs", "Socket_Tail"]
 const SOCKET_POS := [
 	Vector3(0, 0.08, -0.42),
 	Vector3(0, 0, 0),
 	Vector3(-0.42, -0.02, -0.28),
 	Vector3(0.42, -0.02, -0.28),
 	Vector3(0, 0.02, 0.05),
+	Vector3(0, -0.02, 0.36),
 ]
 
 ## 0..1, how fast the crab is walking (set by Crab each frame).
 var walk_amount := 0.0
+## Permanent overlay (champion / dark-water glow); hit flashes return to it.
+var base_overlay: Material
 var torso: Node3D
 var sockets: Array[Marker3D] = []
 
@@ -69,6 +72,8 @@ func show_part(socket: int, part: PartInstance) -> void:
 		return
 	var v := PartVisual.build(part, -1 if socket == Equipment.Socket.CLAW_L else 1)
 	s.add_child(v)
+	if base_overlay:
+		_set_overlay(v, base_overlay)
 	if is_inside_tree():
 		v.scale = Vector3.ONE * 1.35
 		create_tween().tween_property(v, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -120,7 +125,7 @@ func _process(delta: float) -> void:
 	if _flash_left > 0.0:
 		_flash_left -= delta
 		if _flash_left <= 0.0:
-			_set_overlay(self, null)
+			_set_overlay(self, base_overlay)
 	if _dead:
 		return
 	_t += delta

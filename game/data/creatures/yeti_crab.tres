@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/ghost_eyes.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/yeti_claw.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/yeti_legs.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/yeti_shell.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = &"yeti_crab"
+min_depth = 7
+display_name = "Yeti Crab"
+size = 0.95
+base_hp = 40.0
+head = ExtResource("2")
+shell = ExtResource("5")
+claw_l = ExtResource("3")
+claw_r = ExtResource("3")
+legs = ExtResource("4")
+damage_mult = 0.5
+aggro_range = 7.0
+spawn_weight = 2.0
+rarity_luck = 0.4

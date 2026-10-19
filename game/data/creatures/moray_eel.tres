@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1")
 id = &"moray_eel"
+min_depth = 2
 display_name = "Moray Eel"
 kind = 1
 body_kind = &"eel"

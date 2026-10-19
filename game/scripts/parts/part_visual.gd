@@ -36,6 +36,8 @@ static func build(part: PartInstance, side := 1) -> Node3D:
 				_build_claw(root, d, s, part.rarity, signi(side))
 			PartData.Slot.LEGS:
 				_build_legs(root, d, s, part.rarity)
+			PartData.Slot.TAIL:
+				_build_tail(root, d, s, part.rarity)
 	root.name = String(d.id)
 	root.set_meta("part_id", d.id)
 	return root
@@ -83,6 +85,14 @@ static func _build_head(root: Node3D, d: PartData, s: Dictionary, r: int) -> voi
 				var a := lerpf(-1.1, 1.1, i / 8.0)
 				var base := Vector3(sin(a) * 0.1, 0.06, 0.04)
 				_segment(root, base, base + Vector3(sin(a) * 0.25, 0.32 * cos(a * 0.6), 0.12), 0.02, 0.0, col if i % 2 else acc)
+		"hammer":  # hammerhead: a wide bar with eyes on the ends
+			_ellipsoid(root, Vector3(0, 0.06, -0.06), Vector3(0.9, 0.1, 0.22), col)
+			for x in [-1.0, 1.0]:
+				_ellipsoid(root, Vector3(x * 0.43, 0.08, -0.06), Vector3.ONE * 0.09, mat(Color(0.95, 0.9, 0.5), r))
+				_ellipsoid(root, Vector3(x * 0.46, 0.08, -0.08), Vector3.ONE * 0.05, mat(Color.BLACK))
+		"float":   # man o' war: a translucent sail-crested bladder
+			_ellipsoid(root, Vector3(0, 0.2, 0.05), Vector3(0.3, 0.3, 0.55), CritterVisual._glass(d.color, 0.6, 0.7))
+			_ellipsoid(root, Vector3(0, 0.36, 0.05), Vector3(0.07, 0.2, 0.5), CritterVisual._glass(d.accent, 0.75, 1.0))
 		"jelly":   # a glowing jelly cap with dangling bits
 			var g := CritterVisual._glass(d.color, 0.6, 0.8)
 			_ellipsoid(root, Vector3(0, 0.17, 0.02), Vector3(0.42, 0.3, 0.36), g)
@@ -109,15 +119,9 @@ static func _build_shell(root: Node3D, d: PartData, s: Dictionary, r: int) -> vo
 			for i in 4:
 				var c := col if i % 2 == 0 else acc
 				_ellipsoid(root, Vector3(0, 0.04, -0.27 + i * 0.19), Vector3(w * (1.0 - i * 0.1), h, 0.32), c)
-		"lobster":  # carapace + segmented tail + tail fan
+		"lobster":  # long carapace (the tail itself is a Tail part)
 			_ellipsoid(root, Vector3(0, 0.05, -0.05), Vector3(w * 0.85, h, l * 0.9), col)
-			for i in 4:
-				var sz := 1.0 - i * 0.14
-				_ellipsoid(root, Vector3(0, 0.02 - i * 0.03, l * 0.4 + i * 0.17), Vector3(w * 0.55 * sz, h * 0.7 * sz, 0.22), col if i % 2 == 0 else acc)
-			var fz := l * 0.4 + 4 * 0.17 + 0.03
-			for j in [-1.0, 0.0, 1.0]:
-				var fan := _ellipsoid(root, Vector3(j * 0.12, -0.07, fz + 0.08 - absf(j) * 0.03), Vector3(0.16, 0.03, 0.24), acc)
-				fan.rotation.y = -j * 0.4
+			_ellipsoid(root, Vector3(0, 0.03, l * 0.38), Vector3(w * 0.6, h * 0.75, 0.24), acc)
 		"star":     # starfish on your back
 			_ellipsoid(root, Vector3(0, 0.08, 0), Vector3(0.45, h, 0.45), col)
 			for i in 5:
@@ -150,6 +154,22 @@ static func _build_shell(root: Node3D, d: PartData, s: Dictionary, r: int) -> vo
 		"isopod":   # armoured bands
 			for i in 6:
 				_ellipsoid(root, Vector3(0, 0.05, -0.38 + i * 0.15), Vector3(w * (1.0 - absf(i - 2.5) * 0.08), h, 0.2), col if i % 2 == 0 else acc)
+		"horseshoe": # smooth helmet + rear plate
+			_ellipsoid(root, Vector3(0, 0.05, -0.05), Vector3(w * 1.1, h * 0.8, l * 0.95), mat(d.color, r, 0.3, 0.35))
+			_ellipsoid(root, Vector3(0, 0.04, l * 0.42), Vector3(w * 0.65, h * 0.6, 0.35), acc)
+		"clam":     # two ribbed valves, slightly open
+			_ellipsoid(root, Vector3(0, 0.0, 0), Vector3(w * 1.05, h * 0.6, l), col)
+			var top := _ellipsoid(root, Vector3(0, 0.14, 0.04), Vector3(w * 1.05, h * 0.6, l), col)
+			top.rotation.x = -0.18
+			for i in 5:
+				var x := lerpf(-0.4, 0.4, i / 4.0) * w
+				_segment(root, Vector3(x * 0.3, h * 0.45, l * 0.35), Vector3(x, h * 0.3, -l * 0.4), 0.025, 0.02, acc)
+		"cucumber": # lumpy, squishy hide
+			for i in 3:
+				_ellipsoid(root, Vector3(0, 0.05, -0.25 + i * 0.25), Vector3(w * 0.9, h, 0.45), col)
+			for i in 10:
+				var ang := i * 2.39996
+				_ellipsoid(root, Vector3(cos(ang) * w * 0.3, 0.05 + h * 0.45, -0.3 + (i % 5) * 0.15), Vector3.ONE * 0.08, acc)
 		"decorator": # dome wearing bits of the seafloor
 			_ellipsoid(root, Vector3(0, 0.05, 0), Vector3(w, h, l), col)
 			var bits := [Color(0.3, 0.7, 0.3), Color(0.9, 0.35, 0.35), Color(0.95, 0.8, 0.3), Color(0.4, 0.55, 0.9), Color(0.7, 0.4, 0.8)]
@@ -172,6 +192,12 @@ static func _build_shell(root: Node3D, d: PartData, s: Dictionary, r: int) -> vo
 	for i in spots:
 		var a := TAU * i / spots
 		_ellipsoid(root, Vector3(cos(a) * w * 0.2, 0.05 + h * 0.48, sin(a) * l * 0.2), Vector3(0.1, 0.03, 0.1), acc)
+	if s.get("hairy", false):   # yeti crab fuzz
+		for i in 24:
+			var ang := i * 2.39996
+			var rr := sqrt((i + 0.5) / 24.0)
+			var p := Vector3(cos(ang) * rr * w * 0.45, 0.05 + h * 0.5 * (1.0 - rr * rr * 0.8), sin(ang) * rr * l * 0.45)
+			_segment(root, p, p + Vector3(0, 0.12, 0) + p.normalized() * 0.05, 0.012, 0.004, acc)
 	if s.get("pearl", false):
 		_ellipsoid(root, Vector3(0, 0.05 + h * 0.55, 0), Vector3.ONE * 0.16, mat(Color(1, 0.97, 0.95), r, 0.3, 0.15))
 
@@ -233,6 +259,19 @@ static func _build_claw(root: Node3D, d: PartData, s: Dictionary, r: int, side: 
 				var tx := lerpf(-size * 0.28, size * 0.28, i / 3.0)
 				var tz := -size * 0.95 + absf(tx) * 0.6
 				_segment(jaw, Vector3(tx, 0.0, tz), Vector3(tx, size * 0.2, tz), size * 0.06, 0.0, tooth)
+		"pom":      # boxer crab: holding a stinging anemone
+			_segment(hand, Vector3.ZERO, Vector3(0, 0.02, -size * 0.6), size * 0.1, size * 0.08, col)
+			jaw.position = Vector3(0, 0.02, -size * 0.6)
+			_ellipsoid(jaw, Vector3(0, 0.02, -size * 0.35), Vector3.ONE * size * 0.7, mat(d.accent, r))
+			for i in 14:
+				var ang := i * 2.39996
+				var dn := Vector3(cos(ang) * 0.8, 0.5 + (i % 3) * 0.25, sin(ang) * 0.8).normalized()
+				_segment(jaw, Vector3(0, 0.02, -size * 0.35) + dn * size * 0.3, Vector3(0, 0.02, -size * 0.35) + dn * size * 0.6, size * 0.05, size * 0.02, CritterVisual._glass(d.accent, 0.85, 0.6))
+		"bill":     # swordfish bill: one long thrusting spike
+			_ellipsoid(hand, Vector3(0, 0, -size * 0.2), Vector3(size * 0.6, size * 0.5, size * 0.8), col)
+			_segment(hand, Vector3(0, 0, -size * 0.5), Vector3(x * 0.02, 0, -size * 3.0), size * 0.12, 0.0, acc)
+			jaw.position = Vector3(0, -0.03, -size * 0.45)
+			_segment(jaw, Vector3.ZERO, Vector3(0, 0, -size * 0.4), size * 0.08, size * 0.02, col)
 		"stinger":  # long barbed spike
 			_segment(hand, Vector3.ZERO, Vector3(x * 0.02, 0, -size * 2.4), size * 0.14, 0.0, acc)
 			for i in 3:
@@ -246,6 +285,11 @@ static func _build_claw(root: Node3D, d: PartData, s: Dictionary, r: int, side: 
 			_segment(hand, Vector3(x * size * 0.15, 0, -size * 0.8), Vector3(x * size * 0.04, 0, -size * 1.65), size * 0.17, size * 0.02, acc)
 			jaw.position = Vector3(-x * size * 0.15, 0.02, -size * 0.75)
 			_segment(jaw, Vector3.ZERO, Vector3(x * size * 0.14, 0, -size * 0.85), size * 0.15, size * 0.02, acc)
+	if s.get("hairy", false):   # yeti crab: fuzzy claws
+		for i in 16:
+			var ang := i * 2.39996
+			var p := Vector3(cos(ang) * size * 0.3, sin(ang) * size * 0.25, -size * (0.1 + (i % 8) * 0.12))
+			_segment(hand, p, p * 1.6 + Vector3(0, 0.05, 0), 0.01, 0.004, acc)
 	hand.add_child(jaw)
 
 
@@ -287,6 +331,58 @@ static func _build_legs(root: Node3D, d: PartData, s: Dictionary, r: int) -> voi
 				_segment(leg, knee, knee + Vector3(x * 0.03, 0.09, 0), thick * 0.6, 0.0, acc)
 			if paddle and i == 2:
 				_ellipsoid(leg, foot + Vector3(0, 0.05, 0), Vector3(0.14, 0.02, 0.1), acc)
+			if s.get("hairy", false):
+				for j in 4:
+					var p := knee.lerp(foot, 0.15 + j * 0.2)
+					_segment(leg, p, p + Vector3(x * 0.06, 0.03, 0.03), 0.01, 0.003, acc)
+
+
+## Tails grow backwards (+Z) from the tail socket. The swinging part is a node
+## named "Swing" (TailBrain and CrabBody animate it).
+static func _build_tail(root: Node3D, d: PartData, s: Dictionary, r: int) -> void:
+	var col := mat(d.color, r)
+	var acc := mat(d.accent, r)
+	var swing := Node3D.new()
+	swing.name = "Swing"
+	root.add_child(swing)
+	var w: float = s.get("width", 0.5)
+	var length: float = s.get("length", 1.0)
+	match String(s.get("kind", "tucked")):
+		"fan":     # lobster / shrimp: segments ending in a tail fan
+			var z := 0.0
+			for i in 4:
+				var sz := 1.0 - i * 0.14
+				_ellipsoid(swing, Vector3(0, -0.01 - i * 0.03, z + 0.1), Vector3(w * sz, 0.2 * sz, 0.24 * length), col if i % 2 == 0 else acc)
+				z += 0.17 * length
+			for j in [-1.0, -0.5, 0.0, 0.5, 1.0]:
+				var fan := _ellipsoid(swing, Vector3(j * 0.14, -0.1, z + 0.12 - absf(j) * 0.04), Vector3(0.13, 0.025, 0.26), acc)
+				fan.rotation.y = -j * 0.5
+		"spike":   # horseshoe crab: a long straight spike
+			_ellipsoid(swing, Vector3(0, 0, 0.06), Vector3(w * 0.5, 0.14, 0.2), col)
+			_segment(swing, Vector3(0, 0, 0.1), Vector3(0, 0.05, 0.1 + 0.9 * length), 0.05, 0.0, acc)
+		"whip":    # stingray: a thin whip with a barb
+			_segment(swing, Vector3.ZERO, Vector3(0, 0.02, 1.0 * length), 0.04, 0.015, col)
+			_segment(swing, Vector3(0, 0.02, 0.7 * length), Vector3(0, 0.08, 1.05 * length), 0.03, 0.0, acc)
+		"fin":     # shark / fish tail fin
+			_segment(swing, Vector3.ZERO, Vector3(0, 0, 0.4 * length), 0.12, 0.06, col)
+			for sy in [-1.0, 1.0]:
+				var f := _ellipsoid(swing, Vector3(0, sy * 0.14, 0.52 * length), Vector3(0.04, 0.36, 0.22), acc)
+				f.rotation.x = sy * 0.6
+		"lure":    # angler: a curling stalk with a glowing bulb
+			_segment(swing, Vector3.ZERO, Vector3(0, 0.35, 0.3 * length), 0.03, 0.02, col)
+			_segment(swing, Vector3(0, 0.35, 0.3 * length), Vector3(0, 0.55, 0.05), 0.02, 0.015, col)
+			_ellipsoid(swing, Vector3(0, 0.56, 0.02), Vector3.ONE * 0.14, CritterVisual._glass(d.accent, 0.95, 2.5))
+		"spiny":   # lionfish: a fan of venom spines
+			_ellipsoid(swing, Vector3(0, 0, 0.1), Vector3(w * 0.6, 0.16, 0.26), col)
+			for i in 7:
+				var a := lerpf(-1.0, 1.0, i / 6.0)
+				_segment(swing, Vector3(0, 0.02, 0.15), Vector3(sin(a) * 0.35, 0.18 + cos(a) * 0.1, 0.15 + cos(a) * 0.4 * length), 0.02, 0.0, acc if i % 2 else col)
+		"zap":     # torpedo ray: a stubby tail with glowing electric nubs
+			_segment(swing, Vector3.ZERO, Vector3(0, 0, 0.6 * length), 0.08, 0.04, col)
+			for i in 3:
+				_ellipsoid(swing, Vector3(0, 0.06, 0.15 + i * 0.17 * length), Vector3.ONE * 0.08, CritterVisual._glass(d.accent, 0.95, 2.0))
+		_:         # tucked: crabs keep their tail folded under
+			_ellipsoid(swing, Vector3(0, -0.1, -0.05), Vector3(w * 0.7, 0.06, 0.24), col)
 
 
 # --- Primitives ---------------------------------------------------------------------

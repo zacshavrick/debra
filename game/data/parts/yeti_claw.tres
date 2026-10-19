@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"yeti_claw"
+display_name = "Yeti Claw"
+slot = 2
+description = "Three wide swipes."
+max_hp = 0
+attack = 4
+defense = 1
+speed = 0
+ability = &"rake"
+color = Color(0.92, 0.9, 0.85, 1)
+accent = Color(0.85, 0.82, 0.75, 1)
+shape = {"kind": "pincer", "arm": 0.36, "size": 0.28, "hairy": true}
+special = false

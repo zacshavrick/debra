@@ -12,6 +12,11 @@ var source: Creature
 var color := Color(0.7, 0.95, 1.0)
 var radius := 0.18
 var poison_dps := 0.0
+## > 1 = an elongated spine pointing along its flight.
+var stretch := 1.0
+
+var _mi: MeshInstance3D
+
 
 var _travelled := 0.0
 static var _mesh: SphereMesh
@@ -35,19 +40,45 @@ func _ready() -> void:
 		m.emission = color
 		m.emission_energy_multiplier = 0.6
 		_mats[key] = m
-	var mi := MeshInstance3D.new()
+	_mi = MeshInstance3D.new()
+	var mi := _mi
 	mi.mesh = _mesh
 	mi.material_override = _mats[key]
-	mi.scale = Vector3.ONE * radius * 2.0
+	mi.scale = Vector3(1, 1, stretch) * radius * 2.0
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
+	if not Platform.is_low():   # bubbly trail left in the water
+		var trail := CPUParticles3D.new()
+		trail.local_coords = false
+		trail.amount = 10
+		trail.lifetime = 0.35
+		trail.direction = Vector3.UP
+		trail.spread = 180.0
+		trail.initial_velocity_min = 0.1
+		trail.initial_velocity_max = 0.4
+		trail.gravity = Vector3.ZERO
+		trail.scale_amount_min = 0.3
+		trail.scale_amount_max = 0.7
+		var tm := SphereMesh.new()
+		tm.radius = radius * 0.5
+		tm.height = radius
+		tm.radial_segments = 6
+		tm.rings = 3
+		tm.material = _mats[key]
+		trail.mesh = tm
+		add_child(trail)
 
 
 func _physics_process(delta: float) -> void:
 	var step := velocity * delta
 	global_position += step
 	_travelled += step.length()
-	scale = Vector3.ONE * (1.0 + sin(_travelled * 3.0) * 0.12)
+	_mi.scale = Vector3(1, 1, stretch) * radius * 2.0
+	if stretch > 1.0:
+		if velocity.length() > 0.01:
+			look_at(global_position + velocity, Vector3.UP)
+	else:
+		scale = Vector3.ONE * (1.0 + sin(_travelled * 3.0) * 0.12)
 	for n in get_tree().get_nodes_in_group("creatures"):
 		var c := n as Creature
 		if c == null or c.team == team or c.is_dead():

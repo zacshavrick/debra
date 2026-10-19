@@ -19,8 +19,8 @@ var _toast_left := 0.0
 var _boss_box: VBoxContainer
 var _boss_name: Label
 var _boss_bar: ProgressBar
-var _clear_panel: PanelContainer
-var _clear_text: Label
+var _mods: Label
+
 var _minimap: Minimap
 
 
@@ -47,6 +47,13 @@ func _ready() -> void:
 	tl.add_child(_stats)
 	_progress = _label("", 16, Color(1, 0.9, 0.7))
 	tl.add_child(_progress)
+	_mods = _label("", 14, Color(0.75, 0.9, 1.0))
+	tl.add_child(_mods)
+	if level and level.level:
+		var names: Array[String] = []
+		for m in level.level.modifiers:
+			names.append(String(LevelGenerator.MODIFIERS.get(m, String(m))).get_slice(":", 0))
+		_mods.text = " · ".join(names)
 	var map_btn := Button.new()
 	map_btn.text = "MAP"
 	map_btn.custom_minimum_size = Vector2(90, 40)
@@ -111,34 +118,6 @@ func _ready() -> void:
 	_prompt.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_prompt_panel.add_child(_prompt)
 
-	# Level clear panel (centre)
-	var center := CenterContainer.new()
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(center)
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_clear_panel = PanelContainer.new()
-	_clear_panel.add_theme_stylebox_override("panel", _box(Color(0.02, 0.08, 0.14, 0.92), 22))
-	_clear_panel.visible = false
-	center.add_child(_clear_panel)
-	var cv := VBoxContainer.new()
-	cv.add_theme_constant_override("separation", 14)
-	_clear_panel.add_child(cv)
-	var title := _label("LEVEL CLEAR", 34, Color(1, 0.85, 0.4))
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cv.add_child(title)
-	_clear_text = _label("", 18, Color(0.85, 0.95, 1.0))
-	_clear_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cv.add_child(_clear_text)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 16)
-	cv.add_child(row)
-	var to_map := _button("Back to map")
-	to_map.pressed.connect(func() -> void: GameState.go_to_map())
-	row.add_child(to_map)
-	var keep := _button("Keep fighting")
-	keep.pressed.connect(func() -> void: _clear_panel.visible = false)
-	row.add_child(keep)
 
 	player.equipped.connect(_on_equipped)
 	player.respawned.connect(func() -> void: toast("Back home.", Color(0.7, 0.9, 1.0)))
@@ -155,7 +134,7 @@ func toast(text: String, col := Color.WHITE, sec := 2.2) -> void:
 
 
 func _on_equipped(socket: int, part: PartInstance) -> void:
-	toast("%s: %s" % [Equipment.SOCKET_NAMES[socket], part.display_name()], Rarity.color_of(part.rarity))
+	toast("%s: %s" % [Equipment.SOCKET_NAMES[socket], part.full_name()], Rarity.color_of(part.rarity))
 
 
 func _on_boss_spawned(b: Creature) -> void:
@@ -163,16 +142,12 @@ func _on_boss_spawned(b: Creature) -> void:
 	_boss_name.text = b.display_name
 
 
+## No prompt: a portal opened where the boss died. Take it whenever.
 func _on_cleared(unlocked_next: bool) -> void:
-	var next: LevelData = GameState.next_level(level.level.id) if level.level else null
-	if unlocked_next and next:
-		_clear_text.text = "%s unlocked on the map." % next.display_name
-	elif next == null:
-		_clear_text.text = "You cleared the deepest part of the sea. For now."
-	else:
-		_clear_text.text = "Cleared again. The loot doesn't care."
-	_clear_panel.visible = true
-	toast("Level clear!", Color(1, 0.85, 0.4), 3.0)
+	var msg := "Boss down! A portal opened. Take it whenever you're done looting."
+	if unlocked_next:
+		msg = "Boss down! Depth %d unlocked. The portal's open whenever." % (level.level.depth + 1)
+	toast(msg, Color(1, 0.85, 0.4), 4.0)
 
 
 func _process(delta: float) -> void:
@@ -185,12 +160,7 @@ func _process(delta: float) -> void:
 	_stats.text = "ATK %d   DEF %d   SPD %.1f" % [roundi(player.equipment.total(&"attack")), roundi(h.defense), player.move_speed]
 	if level and level.level:
 		var l := level.level
-		if level.is_cleared:
-			_progress.text = "%s  ·  cleared" % l.display_name
-		elif is_instance_valid(level.boss):
-			_progress.text = "%s  ·  boss!" % l.display_name
-		else:
-			_progress.text = "%s  ·  %d / %d" % [l.display_name, mini(level.kills, l.kill_goal), l.kill_goal]
+		_progress.text = "%s  ·  %s" % [l.display_name, level.objective_status()]
 		var b := level.boss
 		if is_instance_valid(b) and not b.is_dead():
 			_boss_bar.max_value = b.health.max_hp
@@ -199,7 +169,7 @@ func _process(delta: float) -> void:
 			_boss_box.visible = false
 	for s in Equipment.SOCKET_COUNT:
 		var p := player.equipment.get_part(s)
-		_slots[s].text = "%s  ·  %s" % [p.display_name() if p else "-", Equipment.SOCKET_NAMES[s]]
+		_slots[s].text = "%s  ·  %s" % [p.full_name() if p else "-", Equipment.SOCKET_NAMES[s]]
 		_slots[s].modulate = Rarity.color_of(p.rarity) if p else Color(1, 1, 1, 0.4)
 	_update_prompt()
 	if _toast_left > 0.0:
@@ -214,7 +184,7 @@ func _update_prompt() -> void:
 		return
 	var part := pk.part
 	var col := Rarity.color_of(part.rarity).to_html(false)
-	var t := "[center][b][color=#%s]%s[/color][/b]  [color=#9ab]%s[/color]\n" % [col, part.display_name(), PartData.slot_name(part.data.slot)]
+	var t := "[center][b][color=#%s]%s[/color][/b]  [color=#9ab]%s[/color]\n" % [col, part.full_name(), PartData.slot_name(part.data.slot)]
 	if part.data.slot == PartData.Slot.CLAW:
 		t += "[color=#ffe0a0]%s[/color]\n" % CrabCombat.style_info(part)
 		t += "Left: %s\n" % _diff(part, player.equipment.get_part(Equipment.Socket.CLAW_L))
@@ -222,6 +192,8 @@ func _update_prompt() -> void:
 		t += _keys("Equip left", "Equip right")
 	else:
 		var socket: int = Equipment.sockets_for(part.data.slot)[0]
+		if part.data.slot == PartData.Slot.TAIL:
+			t += "[color=#a0ffd0]%s[/color]\n" % TailBrain.info(part)
 		t += _diff(part, player.equipment.get_part(socket)) + "\n"
 		t += _keys("Equip", "")
 	_prompt.text = t + "[/center]"

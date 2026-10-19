@@ -7,7 +7,7 @@ extends Resource
 ## point; claws are built for the RIGHT side, +X) or, while we're on
 ## placeholders, the procedural `shape` parameters read by PartVisual.
 
-enum Slot { HEAD, SHELL, CLAW, LEGS }
+enum Slot { HEAD, SHELL, CLAW, LEGS, TAIL }
 
 @export var id: StringName
 @export var display_name := ""
@@ -22,7 +22,8 @@ enum Slot { HEAD, SHELL, CLAW, LEGS }
 
 @export_group("Ability")
 ## Claws: the attack style this claw gives (a key of CrabCombat.STYLES).
-## Other slots: reserved for passives (not designed yet).
+## Tails: what the tail does on its own (a key of TailBrain.TAILS).
+## Head, shell, legs: reserved for passives (not designed yet).
 @export var ability: StringName = &""
 
 @export_group("Look")
@@ -41,4 +42,4 @@ const STAT_LABELS := {&"max_hp": "HP", &"attack": "ATK", &"defense": "DEF", &"sp
 
 
 static func slot_name(s: int) -> String:
-	return ["Head", "Shell", "Claw", "Legs"][s]
+	return ["Head", "Shell", "Claw", "Legs", "Tail"][s]

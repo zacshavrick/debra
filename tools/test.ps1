@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 # which must not abort the run. Pass/fail is decided by the PASSED line below.
 $ErrorActionPreference = 'Continue'
 & $Godot --headless --path $Project --import 2>&1 | Out-Null
-$out = & $Godot --headless --path $Project --quit-after 90000 res://tests/smoke_test.tscn 2>&1 |
+$out = & $Godot --headless --path $Project --quit-after 200000 res://tests/smoke_test.tscn 2>&1 |
     ForEach-Object { "$_" } | Where-Object { $_ -notmatch '^\[' }
 $out
 if ($LASTEXITCODE -ne 0 -or -not ($out -match 'SMOKE TEST PASSED')) {

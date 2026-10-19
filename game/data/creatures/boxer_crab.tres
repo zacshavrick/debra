@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/anemone_pom.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/boxer_shell.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/shore_eyes.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/shore_legs.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = &"boxer_crab"
+min_depth = 3
+display_name = "Boxer Crab"
+size = 0.7
+base_hp = 20.0
+head = ExtResource("4")
+shell = ExtResource("3")
+claw_l = ExtResource("2")
+claw_r = ExtResource("2")
+legs = ExtResource("5")
+damage_mult = 0.45
+aggro_range = 7.0
+spawn_weight = 2.0

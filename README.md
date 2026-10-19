@@ -2,19 +2,20 @@
 
 A 3D action RPG where you play a little crustacean on the seafloor. Every kill drops a body part, and wearing it changes your stats, your attacks and your look. **You are what you kill.**
 
-Pick a crab, pick a level on the map, and drop in. No plot.
+Pick a crab, pick a depth, and dive. No plot. The sea goes down forever.
 
 Built with **Godot 4.7.2**. It runs as a **Windows exe** and as a **mobile web app**.
 
-![map](docs/screenshots/map.png)
-![coral reef](docs/screenshots/level_reef.png)
+![a generated depth with its chimera boss](docs/screenshots/gen_vents.png)
+![the endless depth map](docs/screenshots/map.png)
 ![a mutated Debra](docs/screenshots/mutant.png)
 
 ## What's in it
 - **5 starter crustaceans:** Debra the Lobster, Saul the Crab, Louise the Shrimp, Marjorie the Hermit Crab and Gary the Spider Crab. Each crab keeps its own mutations.
-- **5 levels on a depth map:** Sandy Shallows → Kelp Forest → Coral Reef → Sunken Wreck → The Abyss. Kill enough creatures and the boss shows up. Beat it to unlock the next level.
-- **21 kinds of sea creature** and **5 bosses**: crabs, lobsters, shrimp, isopods, eels, sharks, jellyfish, urchins, octopuses, rays, anglerfish and more.
-- **75 body parts** and **7 claw attack styles**: pinch, crush, cut, snap, bite, lash and sting.
+- **An endless dive.** Five hand-made depths, then generated ones forever. Every depth has a biome, an arena layout, a featured creature, an objective (cull, waves or hunt) and modifiers like Swarm, Riptide or Dark water. The same depth is always the same level.
+- **Chimera bosses** that wear parts stolen from other creatures, have traits (summoner, enrage, slam, shell, splitter), and **adapt to how you fight**: snipe them and they rush you, brawl them and they grow thorns. Beat one and a portal opens home.
+- **36 kinds of sea creature**: crabs, lobsters, shrimp, isopods, eels, sharks, swordfish, jellyfish, urchins, octopuses, cuttlefish, rays, clams and more.
+- **113 body parts in 6 slots.** Claws are your attacks (8 styles). Tails act on their own: they flick you away, stab, zap, lure, spray spines or ram. Deeper parts are stronger.
 
 ## Play
 - **Web / phone:** open this repo's GitHub Pages URL. On a phone, "Add to Home Screen" gives you fullscreen landscape.
@@ -28,7 +29,7 @@ Built with **Godot 4.7.2**. It runs as a **Windows exe** and as a **mobile web a
 | Right claw attack | RMB / K | B / RB / RT | R CLAW |
 | Equip part (left claw) | E / F | A | EQUIP / EQUIP L |
 | Equip to right claw | R | Y | EQUIP R |
-| Back to map | Esc | Start | MAP |
+| Back to map | Esc, or the portal | Start | MAP |
 | Dev: random part / spawn / heal / boss | F1 / F2 / F3 / F4 | | |
 
 ![creatures](docs/screenshots/creatures.png)

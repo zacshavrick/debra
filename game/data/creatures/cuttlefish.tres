@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/cuttle_shell.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"cuttlefish"
+min_depth = 4
+display_name = "Cuttlefish"
+kind = 1
+body_kind = &"squid"
+size = 0.95
+base_hp = 34.0
+hover = 0.5
+color = Color(0.82, 0.62, 0.5, 1)
+accent = Color(0.3, 0.2, 0.18, 1)
+speed = 3.2
+behaviour = &"ranged"
+attack = &"pull"
+damage_mult = 0.5
+aggro_range = 9.0
+preferred_range = 4.5
+spawn_weight = 1.8
+drops = [ExtResource("2")]

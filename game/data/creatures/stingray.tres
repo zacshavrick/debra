@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="CreatureData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
 [ext_resource type="Resource" path="res://data/parts/ray_stinger.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/ray_whip.tres" id="3"]
 
 [resource]
 script = ExtResource("1")
 id = &"stingray"
+min_depth = 3
 display_name = "Stingray"
 kind = 1
 body_kind = &"ray"
@@ -20,4 +22,4 @@ attack = &"dash"
 damage_mult = 0.45
 aggro_range = 8.0
 spawn_weight = 1.5
-drops = [ExtResource("2")]
+drops = [ExtResource("2"), ExtResource("3")]

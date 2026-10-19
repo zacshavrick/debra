@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1")
 id = &"urchin"
+min_depth = 1
 display_name = "Sea Urchin"
 kind = 1
 body_kind = &"urchin"

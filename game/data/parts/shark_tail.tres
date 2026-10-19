@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shark_tail"
+display_name = "Shark Tail"
+slot = 4
+description = "Takes off without asking."
+max_hp = 5
+attack = 2
+defense = 0
+speed = 1.5
+ability = &"surge"
+color = Color(0.45, 0.52, 0.6, 1)
+accent = Color(0.35, 0.4, 0.48, 1)
+shape = {"kind": "fin", "length": 1.0}
+special = false

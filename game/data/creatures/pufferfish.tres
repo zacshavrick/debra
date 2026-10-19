@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1")
 id = &"pufferfish"
+min_depth = 3
 display_name = "Pufferfish"
 kind = 1
 body_kind = &"puffer"

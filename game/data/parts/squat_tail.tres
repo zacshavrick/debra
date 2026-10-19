@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"squat_tail"
+display_name = "Squat Lobster Tail"
+slot = 4
+description = ""
+max_hp = 4
+attack = 0
+defense = 1
+speed = 0.5
+ability = &"flick"
+color = Color(0.95, 0.45, 0.2, 1)
+accent = Color(0.98, 0.75, 0.5, 1)
+shape = {"kind": "fan", "width": 0.4, "length": 0.7}
+special = false

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/horseshoe_shell.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/horseshoe_tail.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"horseshoe_crab"
+min_depth = 4
+display_name = "Horseshoe Crab"
+kind = 1
+body_kind = &"horseshoe"
+size = 0.95
+base_hp = 40.0
+color = Color(0.5, 0.38, 0.26, 1)
+accent = Color(0.38, 0.28, 0.18, 1)
+speed = 2.0
+behaviour = &"melee"
+attack = &"bite"
+damage_mult = 0.5
+aggro_range = 6.0
+spawn_weight = 1.8
+drops = [ExtResource("2"), ExtResource("3")]

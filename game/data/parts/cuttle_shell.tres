@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cuttle_shell"
+display_name = "Cuttlebone"
+slot = 1
+description = ""
+max_hp = 15
+attack = 2
+defense = 3
+speed = 1
+ability = &""
+color = Color(0.82, 0.62, 0.5, 1)
+accent = Color(0.3, 0.2, 0.18, 1)
+shape = {"kind": "slim", "width": 0.95, "height": 0.28}
+special = false

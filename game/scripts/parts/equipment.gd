@@ -9,12 +9,12 @@ extends Node
 
 signal changed(socket: int)
 
-enum Socket { HEAD, SHELL, CLAW_L, CLAW_R, LEGS }
-const SOCKET_COUNT := 5
-const SOCKET_NAMES := ["Head", "Shell", "Left claw", "Right claw", "Legs"]
+enum Socket { HEAD, SHELL, CLAW_L, CLAW_R, LEGS, TAIL }
+const SOCKET_COUNT := 6
+const SOCKET_NAMES := ["Head", "Shell", "Left claw", "Right claw", "Legs", "Tail"]
 
-var _equipped: Array[PartInstance] = [null, null, null, null, null]
-var _display: Array[PartInstance] = [null, null, null, null, null]
+var _equipped: Array[PartInstance] = [null, null, null, null, null, null]
+var _display: Array[PartInstance] = [null, null, null, null, null, null]
 
 
 static func accepts(socket: int, slot: PartData.Slot) -> bool:
@@ -25,6 +25,8 @@ static func accepts(socket: int, slot: PartData.Slot) -> bool:
 			return slot == PartData.Slot.SHELL
 		Socket.CLAW_L, Socket.CLAW_R:
 			return slot == PartData.Slot.CLAW
+		Socket.TAIL:
+			return slot == PartData.Slot.TAIL
 		Socket.LEGS:
 			return slot == PartData.Slot.LEGS
 	return false

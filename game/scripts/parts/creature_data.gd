@@ -25,7 +25,8 @@ enum Kind { CRUSTACEAN, CRITTER }
 @export var claw_l: PartData
 @export var claw_r: PartData
 @export var legs: PartData
-## Critters only: starfish, urchin, jelly, eel, puffer, shark, angler, octopus, ray, lionfish
+@export var tail: PartData
+## Critters only: a CritterVisual.KINDS body (starfish, eel, shark, squid, clam...)
 @export var body_kind: StringName = &""
 @export var color := Color(0.8, 0.5, 0.3)
 @export var accent := Color(0.2, 0.1, 0.1)
@@ -39,9 +40,13 @@ enum Kind { CRUSTACEAN, CRITTER }
 ## 0 = close to melee. >0 = try to keep this distance (ranged creatures).
 @export var preferred_range := 0.0
 @export var spawn_weight := 1.0
+## The level generator only uses this creature at this depth or deeper.
+@export var min_depth := 1
+## Hits poison the target (damage per second for 3 s, before difficulty).
+@export var venom := 0.0
 ## Critters only: melee, ranged, charger, drifter, turret, ambusher (see Critter).
 @export var behaviour: StringName = &"melee"
-## Critters only: bite, dash, spit, spines, pulse, ink (see CritterAttack).
+## Critters only: a CritterAttack.ATTACKS key (bite, dash, pierce, spit, volley, spines, pulse, ink, zap, pull).
 @export var attack: StringName = &"bite"
 
 @export_group("Loot")
@@ -60,9 +65,9 @@ func is_crustacean() -> bool:
 	return kind == Kind.CRUSTACEAN
 
 
-## Parts by Equipment.Socket order: head, shell, claw L, claw R, legs.
+## Parts by Equipment.Socket order: head, shell, claw L, claw R, legs, tail.
 func loadout() -> Array[PartData]:
-	return [head, shell, claw_l, claw_r, legs]
+	return [head, shell, claw_l, claw_r, legs, tail]
 
 
 ## Regular drops (not specials), each once.
@@ -88,7 +93,7 @@ func drop_pool() -> Array[PartData]:
 
 
 ## Rolls a drop for one kill, or null for nothing.
-func roll_drop(rng: RandomNumberGenerator, extra_luck := 0.0) -> PartInstance:
+func roll_drop(rng: RandomNumberGenerator, extra_luck := 0.0, part_level := 1) -> PartInstance:
 	if rng.randf() >= drop_chance:
 		return null
 	var part: PartData
@@ -99,4 +104,4 @@ func roll_drop(rng: RandomNumberGenerator, extra_luck := 0.0) -> PartInstance:
 		if own.is_empty():
 			return null
 		part = own[rng.randi() % own.size()]
-	return PartInstance.new(part, Rarity.roll(rng, rarity_luck + extra_luck))
+	return PartInstance.new(part, Rarity.roll(rng, rarity_luck + extra_luck), part_level)

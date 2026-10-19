@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"manowar_float"
+display_name = "Man o' War Float"
+slot = 0
+description = ""
+max_hp = 10
+attack = 5
+defense = 0
+speed = 0.5
+ability = &""
+color = Color(0.55, 0.6, 0.95, 1)
+accent = Color(0.85, 0.5, 0.85, 1)
+shape = {"stalk": 0.12, "eye": 0.06, "antennae": 0, "extra": "float"}
+special = false

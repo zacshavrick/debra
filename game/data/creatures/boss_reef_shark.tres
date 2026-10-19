@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="CreatureData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
-[ext_resource type="Resource" path="res://data/parts/shark_fin.tres" id="2"]
-[ext_resource type="Resource" path="res://data/parts/shark_jaw.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/shark_jaw.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/shark_tail.tres" id="3"]
 
 [resource]
 script = ExtResource("1")
@@ -21,5 +21,5 @@ behaviour = &"charger"
 attack = &"dash"
 damage_mult = 0.7
 aggro_range = 30.0
-drops = [ExtResource("3"), ExtResource("2")]
+drops = [ExtResource("2"), ExtResource("3")]
 rarity_luck = 1.0

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"nautilus_shell"
+display_name = "Nautilus Shell"
+slot = 1
+description = ""
+max_hp = 30
+attack = 0
+defense = 5
+speed = 0
+ability = &""
+color = Color(0.95, 0.9, 0.82, 1)
+accent = Color(0.65, 0.35, 0.25, 1)
+shape = {"kind": "spiral", "width": 0.95, "height": 0.3, "length": 0.8, "metallic": 0.2, "roughness": 0.3}
+special = false

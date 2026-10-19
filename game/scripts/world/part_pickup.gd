@@ -57,7 +57,7 @@ func _ready() -> void:
 	disc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(disc)
 	_label = Label3D.new()
-	_label.text = part.display_name()
+	_label.text = part.full_name()
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_label.no_depth_test = true
 	_label.font_size = 40

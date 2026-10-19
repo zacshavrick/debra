@@ -120,12 +120,15 @@ func _set_index(i: int) -> void:
 	var parts := GameState.loadout_for(id)
 	var tot := {&"max_hp": data.base_hp, &"attack": 0.0, &"defense": 0.0, &"speed": 0.0}
 	for p in parts:
+		if p == null:
+			continue
 		for st in PartData.STATS:
 			tot[st] = float(tot[st]) + p.stat(st)
-	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s" % [
+	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s\n%s" % [
 		roundi(tot[&"max_hp"]), roundi(tot[&"attack"]), roundi(tot[&"defense"]),
 		maxf(1.5, Crab.BASE_SPEED + float(tot[&"speed"]) * Crab.SPEED_PER_POINT),
-		CrabCombat.style_id(parts[Equipment.Socket.CLAW_L]), CrabCombat.style_id(parts[Equipment.Socket.CLAW_R])]
+		CrabCombat.style_id(parts[Equipment.Socket.CLAW_L]), CrabCombat.style_id(parts[Equipment.Socket.CLAW_R]),
+		"Tail " + TailBrain.info(parts[Equipment.Socket.TAIL])]
 	_reset.visible = _is_mutated(id)
 
 
@@ -133,7 +136,10 @@ func _is_mutated(id: StringName) -> bool:
 	var parts := GameState.loadout_for(id)
 	var defaults := GameState.starter_data(id).loadout()
 	for s in Equipment.SOCKET_COUNT:
-		if parts[s].data != defaults[s] or parts[s].rarity != Rarity.Tier.COMMON:
+		if parts[s] == null or defaults[s] == null:
+			if parts[s] != null or defaults[s] != null:
+				return true
+		elif parts[s].data != defaults[s] or parts[s].rarity != Rarity.Tier.COMMON or parts[s].level != 1:
 			return true
 	return false
 

@@ -28,9 +28,9 @@ projectContext/         handoffs from design chats (read-only history)
 tools/                  setup-godot / test / screenshot / build (.ps1), serve-web.mjs
 .github/workflows/      CI: test → exe + web artifacts → GitHub Pages → releases on v* tags
 game/                   the Godot project (res://)
-  data/parts/*.tres       PartData: one file per part (75)
-  data/creatures/*.tres   CreatureData: starters, enemies, bosses (30)
-  data/levels/*.tres      LevelData: one per level (5)
+  data/parts/*.tres       PartData: one file per part (113)
+  data/creatures/*.tres   CreatureData: starters, enemies, hand-made bosses (46)
+  data/levels/*.tres      LevelData: the 5 hand-made depths (deeper ones are generated)
   scenes/                 map.tscn (main), select.tscn, level.tscn (all built in code)
   shaders/                seafloor, kelp
   scripts/
@@ -39,8 +39,8 @@ game/                   the Godot project (res://)
     parts/      PartData, PartInstance, Rarity, CreatureData, PartCatalog, Equipment, PartVisual
     creatures/  Creature (base), Critter (non-crustaceans), CritterVisual, Loot
     crab/       CrabBody (shared rig), Crab, PlayerCrab, EnemyCrab
-    combat/     CrabCombat, CritterAttack, Melee, Health, BubbleShot, FX   ← combat iteration #1
-    world/      Level, LevelData, LevelBuilder (themes/decor), PartPickup, FollowCamera
+    combat/     CrabCombat, CritterAttack, TailBrain, BossBrain, Melee, Health, BubbleShot, FX   ← combat iteration #1
+    world/      Level, LevelData, LevelGenerator, LevelBuilder (biomes/layouts), Portal, PartPickup, FollowCamera
     ui/         HUD, Minimap, WorldMap, CrabSelect
   tests/        smoke_test (headless, CI), screenshot (renders docs/screenshots)
 ```
@@ -54,7 +54,7 @@ Creature (CharacterBody3D, group "creatures")  health, movement + knockback, poi
 └── Critter       CritterVisual body + one CritterAttack + a behaviour
                   (melee, ranged, charger, drifter, turret, ambusher)
 ```
-- **CreatureData.kind** picks the class: CRUSTACEAN → EnemyCrab, CRITTER → Critter (`Level.spawn_enemy`).
+- **CreatureData.kind** picks the class: CRUSTACEAN → EnemyCrab, CRITTER → Critter (`Level.spawn_enemy`). `min_depth` gates where the generator may use it.
 - **Loot** is the same for both: crustaceans drop from their loadout plus `drops`/`special_drops`; critters drop only from `drops`. Bosses drop 2.
 - **Level difficulty** multiplies enemy HP and damage. Level `rarity_luck` is added to every drop.
 
@@ -77,10 +77,11 @@ CrabBody (origin on the ground, forward = -Z, right = +X)
   Torso (y = 0.45)
     Core
     Socket_Head   (0, 0.08, -0.42)
-    Socket_Shell  (0, 0, 0)          lobster/shrimp tails are part of the shell
+    Socket_Shell  (0, 0, 0)
     Socket_ClawL  (-0.42, -0.02, -0.28)
     Socket_ClawR  ( 0.42, -0.02, -0.28)
     Socket_Legs   (0, 0.02, 0.05)
+    Socket_Tail   (0, -0.02, 0.36)   tails grow backwards (+Z); the moving part is a node named "Swing"
 ```
 - A part's **origin is its attach point**. Claws are authored for the **right** side and mirrored for the left.
 - The moving finger is a node named **`Jaw`**. It opens around Y by default, or around X when it has meta `open_axis = "x"` (bite jaws).
@@ -89,8 +90,25 @@ CrabBody (origin on the ground, forward = -Z, right = +X)
 
 **Swapping in real art:** set `visual_scene` on a PartData (or later, a scene per critter `body_kind`). The smoke test checks every part against every socket that accepts it.
 
-## Levels
-`LevelData` holds the theme (colours, fog, decor set), the creature list, `kill_goal`, `boss`, `difficulty` and `rarity_luck`. `LevelBuilder` turns it into an arena: environment, a seafloor shader tinted per level, a wall ring and rock rim, themed decor (shells, kelp, coral, wreck, glowing abyss), and the home can. Decor is seeded from the level id, so a level looks the same every visit.
+## Levels: hand-made + endless
+- **`GameState.level_at_depth(d)`** returns the hand-made `.tres` for depths 1–5, and `LevelGenerator.generate(d)` for everything deeper. Generated ids are `depth_N`. Clearing depth N unlocks N + 1 (`frontier_depth()`).
+- **`LevelData`** holds everything a level is:
+  - theme: palette, fog, `decor` biome, `layout`
+  - creatures, plus a `featured` one
+  - `objective` + `objective_count`
+  - `modifiers`
+  - the boss (`boss`, `boss_name`, `boss_traits`, `boss_parts` = stolen parts per socket)
+  - `difficulty`, `rarity_luck`, `depth`
+- **`LevelGenerator`** is deterministic: the RNG is seeded from `"debra-depth-N"` and results are cached. It picks the biome (weighted toward newer ones), layout, 5–6 creatures with `min_depth ≤ depth` (at least 2 crustaceans), the objective, modifiers, and a chimera boss (a duplicated CreatureData, scaled up, with stolen parts and traits).
+- **`LevelBuilder`** turns a LevelData into an arena: environment, a seafloor shader tinted per level, a wall ring and rock rim, biome decor (shells, kelp, coral, wreck, glow, vents, sargassum, ice, trench, whale bones), layout obstacles, and the home can. Decor is seeded from the level id, so a level looks the same every visit.
+- **`Level`** runs the objective (cull / waves / hunt), applies modifiers at spawn time (`spawn_enemy(creature, pos, track, opts)`), makes champions, spawns the boss with a `BossBrain`, and opens a `Portal` when the boss dies.
+
+## Bosses and tails (combat folder)
+- **`BossBrain`** is a child node of the boss. It tracks where the player's hits come from (an EMA of range, standard vs close) and switches tactic between `rush` and `bristle`. It runs traits (summoner, enrage, slam, shell, splitter). It drives special moves with `Creature.lock_ai()` + `start_dash()`, and emits `announce` for HUD toasts.
+- **`TailBrain`** is a child of every `Crab`. It reads the TAIL part's `ability` (flick, stab, zap, lure, spines, surge) and acts on timers or on `health.damaged`. Strength = tail power × base + 0.3 × ATK. It animates the tail's `Swing` node.
+
+## Part levels
+`PartInstance.level` (the depth it dropped at) multiplies bonuses by `1 + 0.12 × (level − 1)`, on top of rarity. `PartInstance.power()` = rarity × level is used for claw damage and tail strength. Saves store `{id, rarity, level}`; old saves without `level` load as level 1.
 
 ## Combat lives apart from parts
 Combat will be rebuilt 3–4 times. Everything combat-specific lives in `scripts/combat/`. The rest of the game reaches it only through:
@@ -118,3 +136,8 @@ Combat will be rebuilt 3–4 times. Everything combat-specific lives in `scripts
 | 2026-10-19 | `Creature` base split from `Crab`; non-crustaceans are `Critter` | Non-crustaceans need their own bodies but the same hit/health/loot rules |
 | 2026-10-19 | Levels are data (`LevelData`); the map is a depth chart | Adding a level = one `.tres`. Deeper = harder + better loot reads at a glance |
 | 2026-10-19 | Saves are JSON in `user://` | Works on desktop and in browsers (IndexedDB) |
+| 2026-10-19 | Endless depths are generated, deterministic per depth | Shareable ("depth 23"), no level files to maintain, cacheable |
+| 2026-10-19 | Part levels (depth-scaled stats) | Enemy difficulty grows forever; without it player power plateaus at Epic |
+| 2026-10-19 | 6th socket: Tail, driven by TailBrain (no player input) | Zac asked for a part that acts on its own; keeps claws as the player's buttons |
+| 2026-10-19 | Bosses adapt to range vs close via BossBrain | Zac asked for bosses that change tactics depending on how you play them |
+| 2026-10-19 | Boss death opens a Portal instead of a prompt | Zac: no prompt, leave whenever |

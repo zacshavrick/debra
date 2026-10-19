@@ -10,6 +10,7 @@
 [resource]
 script = ExtResource("1")
 id = &"fiddler_crab"
+min_depth = 1
 display_name = "Fiddler Crab"
 size = 0.8
 base_hp = 22.0

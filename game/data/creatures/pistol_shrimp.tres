@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="CreatureData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
 [ext_resource type="Resource" path="res://data/parts/louise_claw.tres" id="2"]
@@ -6,10 +6,12 @@
 [ext_resource type="Resource" path="res://data/parts/shrimp_carapace.tres" id="4"]
 [ext_resource type="Resource" path="res://data/parts/shrimp_eyes.tres" id="5"]
 [ext_resource type="Resource" path="res://data/parts/shrimp_legs.tres" id="6"]
+[ext_resource type="Resource" path="res://data/parts/shrimp_tail.tres" id="7"]
 
 [resource]
 script = ExtResource("1")
 id = &"pistol_shrimp"
+min_depth = 3
 display_name = "Pistol Shrimp"
 size = 0.7
 base_hp = 18.0
@@ -18,6 +20,7 @@ shell = ExtResource("4")
 claw_l = ExtResource("2")
 claw_r = ExtResource("3")
 legs = ExtResource("6")
+tail = ExtResource("7")
 damage_mult = 0.45
 aggro_range = 9.0
 preferred_range = 5.0

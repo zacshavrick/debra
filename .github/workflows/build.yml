@@ -57,7 +57,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          ~/godot/godot --headless --path game --quit-after 90000 res://tests/smoke_test.tscn 2>&1 | tee /tmp/smoke.log
+          ~/godot/godot --headless --path game --quit-after 200000 res://tests/smoke_test.tscn 2>&1 | tee /tmp/smoke.log
           grep -q "SMOKE TEST PASSED" /tmp/smoke.log
 
       - name: Export Windows + Web

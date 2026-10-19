@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/swordfish_bill.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"swordfish"
+min_depth = 7
+display_name = "Swordfish"
+kind = 1
+body_kind = &"swordfish"
+size = 1.1
+base_hp = 45.0
+hover = 0.6
+color = Color(0.25, 0.3, 0.5, 1)
+accent = Color(0.75, 0.75, 0.8, 1)
+speed = 5.5
+behaviour = &"charger"
+attack = &"pierce"
+damage_mult = 0.55
+aggro_range = 12.0
+spawn_weight = 1.3
+drops = [ExtResource("2")]

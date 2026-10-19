@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"squat_claw"
+display_name = "Squat Lobster Claw"
+slot = 2
+description = "Long, thin, reaches far."
+max_hp = 0
+attack = 4
+defense = 0
+speed = 0.5
+ability = &"lash"
+color = Color(0.95, 0.45, 0.2, 1)
+accent = Color(0.98, 0.75, 0.5, 1)
+shape = {"kind": "cutter", "arm": 0.46, "size": 0.22}
+special = false

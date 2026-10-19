@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/manowar_float.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"man_o_war"
+min_depth = 6
+display_name = "Man o' War"
+kind = 1
+body_kind = &"manowar"
+size = 1.0
+base_hp = 26.0
+hover = 1.3
+color = Color(0.55, 0.6, 0.95, 1)
+accent = Color(0.85, 0.5, 0.85, 1)
+speed = 1.4
+behaviour = &"drifter"
+attack = &"pulse"
+venom = 2.0
+damage_mult = 0.5
+aggro_range = 8.0
+spawn_weight = 1.5
+drops = [ExtResource("2")]

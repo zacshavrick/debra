@@ -4,7 +4,7 @@ extends Creature
 ## one attack (CritterAttack) and a behaviour:
 ##   melee     chase and attack up close
 ##   ranged    keep `preferred_range` and shoot
-##   charger   close in, wind up, dash through you
+##   charger   close in, wind up, charge through you
 ##   drifter   slowly float at you, sting with a pulse when close
 ##   turret    never moves; fires when you're in range
 ##   ambusher  sits still until you come close, then behaves like a charger
@@ -17,33 +17,34 @@ var rng: RandomNumberGenerator
 var difficulty := 1.0
 var loot_luck := 0.0
 var visual: Node3D
+## Parts it carries as extra loot (champions, chimera bosses).
+var stolen: Array[PartData] = []
+## The attack in use (bosses may switch it).
+var attack: StringName
 
 var _t := 0.0
 var _home := Vector3.ZERO
 var _wander_to := Vector3.ZERO
 var _think := 0.0
 var _aggro := false
+var _alert_left := 0.0
 var _cooldown := 1.0
 var _windup := 0.0
 var _windup_total := 0.0
-var _attack_dir := Vector3.FORWARD
-var _dash_left := 0.0
-var _dash_vel := Vector3.ZERO
-var _dash_dmg := 0.0
-var _dash_knock := 0.0
-var _dash_hit := false
 var _flash_left := 0.0
 static var _flash_mat: StandardMaterial3D
 
 
 func _ready() -> void:
 	team = 1
-	size = creature.size
-	is_boss = creature.boss
-	display_name = creature.display_name
+	size = creature.size * size_mult * (1.25 if is_champion else 1.0)
+	is_boss = (creature.boss or is_boss) and not not_boss
+	if display_name == "":
+		display_name = creature.display_name
+	attack = creature.attack
 	super._ready()
 	add_to_group("enemies")
-	base_hp = creature.base_hp * difficulty
+	base_hp = creature.base_hp * difficulty * hp_mult * (3.0 if is_champion else 1.0)
 	damage_mult = creature.damage_mult * difficulty
 	move_speed = creature.speed
 	health.set_max(base_hp)
@@ -54,6 +55,8 @@ func _ready() -> void:
 	visual.scale = Vector3.ONE * size
 	visual.position.y = hover_height()
 	add_child(visual)
+	if glow_overlay:
+		_apply_glow()
 	_home = global_position
 	_wander_to = _home
 	_aggro = is_boss
@@ -74,19 +77,17 @@ func _process(delta: float) -> void:
 	if _flash_left > 0.0:
 		_flash_left -= delta
 		if _flash_left <= 0.0:
-			_set_overlay(visual, null)
+			_set_overlay(visual, glow_overlay)
 
 
 func _physics_process(delta: float) -> void:
-	if _dead:
+	if _dead or is_dashing() or ai_locked():
 		physics_move(Vector3.ZERO, delta, false)
-		return
-	if _dash_left > 0.0:
-		_dash_step(delta)
 		return
 	_cooldown -= delta
 	var player := get_tree().get_first_node_in_group("player") as PlayerCrab
 	var wish := Vector3.ZERO
+	_alert_left -= delta
 	var b := creature.behaviour
 	if player and not player.is_dead():
 		var to := player.global_position - global_position
@@ -95,18 +96,18 @@ func _physics_process(delta: float) -> void:
 		var dir := to / maxf(d, 0.01)
 		if d < creature.aggro_range:
 			_aggro = true
-		elif d > creature.aggro_range * 2.5 and not is_boss:
+		elif d > creature.aggro_range * 2.5 and not is_boss and _alert_left <= 0.0:
 			_aggro = false
 		if _aggro:
-			# Winding up: stand still and face the target.
+			# Winding up: stand still, track the target, then strike.
 			if _windup > 0.0:
 				_windup -= delta
 				face_now(dir)
 				if _windup <= 0.0:
-					CritterAttack.perform(self, creature.attack, dir)
+					CritterAttack.perform(self, attack, dir, player)
 				physics_move(Vector3.ZERO, delta, false)
 				return
-			var a := CritterAttack.info(creature.attack)
+			var a := CritterAttack.info(attack)
 			var reach: float = float(a.range) * maxf(size, 1.0) * 0.85 + player.radius()
 			match b:
 				&"turret":
@@ -124,7 +125,7 @@ func _physics_process(delta: float) -> void:
 				_:
 					wish = dir if d > reach * 0.8 else Vector3.ZERO
 			if d <= reach and _cooldown <= 0.0:
-				_begin_attack(dir)
+				begin_attack(attack, dir)
 			physics_move(wish, delta, true)
 			if wish.length() < 0.1:
 				face_now(facing.slerp(dir, minf(6.0 * delta, 1.0)))
@@ -143,35 +144,14 @@ func _physics_process(delta: float) -> void:
 	physics_move(wish, delta)
 
 
-func _begin_attack(dir: Vector3) -> void:
-	var a := CritterAttack.info(creature.attack)
-	_windup_total = float(a.windup) * (0.75 if is_boss else 1.0)
+## Starts an attack's windup (bosses call this with other attacks too).
+func begin_attack(id: StringName, dir: Vector3) -> void:
+	var a := CritterAttack.info(id)
+	_windup_total = float(a.windup) * (0.75 if is_boss else 1.0) * cooldown_mult
 	_windup = _windup_total
-	_cooldown = float(a.cooldown) * (0.7 if is_boss else 1.0)
-	_attack_dir = dir
-	CritterAttack.telegraph(self, creature.attack)
-
-
-## Dash attack (called by CritterAttack): charge in a straight line, hit once.
-func start_dash(dir: Vector3, spd: float, sec: float, dmg: float, knock: float) -> void:
-	_dash_vel = dir.normalized() * spd
-	_dash_left = sec
-	_dash_dmg = dmg
-	_dash_knock = knock
-	_dash_hit = false
-	face_now(dir)
-
-
-func _dash_step(delta: float) -> void:
-	_dash_left -= delta
-	velocity = Vector3(_dash_vel.x, 0, _dash_vel.z)
-	move_and_slide()
-	if not _dash_hit:
-		for t in Melee.targets(self, global_position, _dash_vel, radius() + 0.4, 360.0):
-			t.receive_hit(_dash_dmg, global_position, _dash_knock, self)
-			_dash_hit = true
-	if _dash_left <= 0.0:
-		velocity = Vector3.ZERO
+	_cooldown = float(a.cooldown) * (0.7 if is_boss else 1.0) * cooldown_mult
+	attack = id
+	CritterAttack.telegraph(self, id, dir, _windup_total)
 
 
 func _on_hit(_amount: float, _source: Creature) -> void:
@@ -188,6 +168,11 @@ func _flash() -> void:
 	_flash_left = 0.08
 
 
+func _apply_glow() -> void:
+	if visual:
+		_set_overlay(visual, glow_overlay)
+
+
 func _set_overlay(n: Node, m: Material) -> void:
 	if n is MeshInstance3D:
 		(n as MeshInstance3D).material_overlay = m
@@ -197,7 +182,6 @@ func _set_overlay(n: Node, m: Material) -> void:
 
 func _play_death() -> void:
 	_windup = 0.0
-	_dash_left = 0.0
 	var tw := create_tween().set_parallel()
 	tw.tween_property(visual, "rotation:z", PI, 0.4)
 	tw.tween_property(visual, "position:y", hover_height() + 0.4, 0.4)
@@ -205,8 +189,13 @@ func _play_death() -> void:
 
 func _on_died() -> void:
 	super._on_died()
-	Loot.on_enemy_died(self, creature, rng, loot_luck)
+	Loot.on_enemy_died(self, creature, rng, loot_luck, stolen)
 	var tw := create_tween()
 	tw.tween_interval(DESPAWN_DELAY * 0.6)
 	tw.tween_property(visual, "scale", Vector3.ONE * 0.01, DESPAWN_DELAY * 0.4)
 	tw.tween_callback(queue_free)
+
+
+func alert() -> void:
+	_aggro = true
+	_alert_left = 8.0

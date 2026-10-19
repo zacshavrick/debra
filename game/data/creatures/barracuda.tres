@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/barracuda_fang.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"barracuda"
+min_depth = 5
+display_name = "Barracuda"
+kind = 1
+body_kind = &"barracuda"
+size = 0.9
+base_hp = 26.0
+hover = 0.6
+color = Color(0.7, 0.75, 0.78, 1)
+accent = Color(0.35, 0.4, 0.45, 1)
+speed = 5.0
+behaviour = &"charger"
+attack = &"pierce"
+damage_mult = 0.45
+aggro_range = 11.0
+spawn_weight = 2.0
+drops = [ExtResource("2")]

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"louise_tail"
+display_name = "Louise's Tail"
+slot = 4
+description = ""
+max_hp = 0
+attack = 0
+defense = 0
+speed = 1
+ability = &"flick"
+color = Color(0.98, 0.6, 0.6, 1)
+accent = Color(0.98, 0.85, 0.8, 1)
+shape = {"kind": "fan", "width": 0.42, "length": 0.9}
+special = false

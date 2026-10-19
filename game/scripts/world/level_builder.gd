@@ -29,11 +29,170 @@ static func build(root: Node3D, level: LevelData, keep_clear: Array[Vector3]) ->
 		&"abyss":
 			_abyss(root, level, d, 40 if not low else 20, keep_clear)
 			_rocks(root, level, d, 6, keep_clear, Color(0.12, 0.12, 0.16))
+		&"vents":
+			_vents(root, level, d, 10 if not low else 6, keep_clear)
+			_rocks(root, level, d, 6, keep_clear, Color(0.18, 0.14, 0.13))
+		&"sargassum":
+			_sargassum(root, level, d, 24 if not low else 12, keep_clear)
+			_kelp(root, level, d, 18, 0.0, keep_clear, Color(0.55, 0.45, 0.15), Color(0.65, 0.55, 0.2), 1.0, 3.0)
+		&"ice":
+			_crystals(root, level, d, 26 if not low else 14, keep_clear)
+			_rocks(root, level, d, 5, keep_clear, Color(0.6, 0.66, 0.72))
+		&"trench":
+			_rocks(root, level, d, 12, keep_clear, Color(0.1, 0.1, 0.12))
+			_abyss(root, level, d, 16 if not low else 8, keep_clear)
+		&"bones":
+			_bones(root, level, d, keep_clear)
+			_shells(root, level, d, 12, keep_clear)
 		_:  # shallows
 			_shells(root, level, d, 30 if not low else 15, keep_clear)
 			_kelp(root, level, d, 25 if not low else 12, 0.0, keep_clear, Color(0.35, 0.6, 0.3), Color(0.55, 0.65, 0.3), 0.8, 1.8)
 			_rocks(root, level, d, 4, keep_clear)
-	_bubbles(root, level, 0 if level.decor == &"abyss" else (25 if low else 60))
+	_layout(root, level, d, keep_clear)
+	var dark := [&"abyss", &"trench"].has(level.decor)
+	_bubbles(root, level, 0 if dark else (25 if low else 60))
+
+
+## Obstacles that change how a level plays: pillars, an inner ring wall,
+## two canyon walls, or rocky islands.
+static func _layout(root: Node3D, level: LevelData, d: RandomNumberGenerator, keep_clear: Array[Vector3]) -> void:
+	var col := level.sand_b.darkened(0.3).lerp(Color(0.3, 0.32, 0.35), 0.4)
+	var r := level.radius
+	match level.layout:
+		&"pillars":
+			for i in 9:
+				var p := _free_spot(level, d, keep_clear, 5.0, 0.8)
+				_pillar(root, p, d.randf_range(0.7, 1.1), d.randf_range(2.5, 4.5), col)
+		&"ring":   # an inner wall with four gaps: fight in the middle or circle around
+			var n := 28
+			for i in n:
+				var a := TAU * i / n
+				if i % 7 == 0 or i % 7 == 1:
+					continue
+				var p := Vector3(cos(a), 0, sin(a)) * r * 0.45
+				var clear := true
+				for k in keep_clear:
+					if p.distance_to(k) < 3.0:
+						clear = false
+				if clear:
+					rock(root, p, d.randf_range(1.0, 1.3), d, true, col)
+		&"canyon":   # two long ridges make three lanes
+			for side in [-1.0, 1.0]:
+				for i in 11:
+					var z := lerpf(-r * 0.55, r * 0.55, i / 10.0)
+					var p := Vector3(side * r * 0.3 + d.randf_range(-0.4, 0.4), 0, z)
+					if absf(z) < 2.5 or p.distance_to(keep_clear[0]) < 4.0 or p.distance_to(keep_clear[1]) < 4.0:
+						continue   # gaps to cross through
+					rock(root, p, d.randf_range(1.1, 1.5), d, true, col)
+		&"islands":
+			for i in 5:
+				var c := _free_spot(level, d, keep_clear, 6.0, 0.75)
+				for j in 4:
+					rock(root, c + Vector3(d.randf_range(-1.5, 1.5), 0, d.randf_range(-1.5, 1.5)), d.randf_range(0.8, 1.3), d, true, col)
+
+
+static func _pillar(root: Node3D, pos: Vector3, r: float, h: float, col: Color) -> void:
+	var mi := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = r * 0.7
+	c.bottom_radius = r
+	c.height = h
+	c.radial_segments = 9
+	mi.mesh = c
+	mi.material_override = PartVisual.mat(col, 0, 0.0, 0.9)
+	mi.position = pos + Vector3(0, h * 0.5, 0)
+	root.add_child(mi)
+	_solid(root, pos, r)
+
+
+static func _vents(root: Node3D, level: LevelData, d: RandomNumberGenerator, count: int, keep_clear: Array[Vector3]) -> void:
+	var rockm := PartVisual.mat(Color(0.16, 0.12, 0.11), 0, 0.0, 0.95)
+	for i in count:
+		var p := _free_spot(level, d, keep_clear, 4.0)
+		var h := d.randf_range(1.2, 3.0)
+		var mi := MeshInstance3D.new()
+		var c := CylinderMesh.new()
+		c.top_radius = 0.3
+		c.bottom_radius = 0.75
+		c.height = h
+		mi.mesh = c
+		mi.material_override = rockm
+		mi.position = p + Vector3(0, h * 0.5, 0)
+		root.add_child(mi)
+		PartVisual._ellipsoid(root, p + Vector3(0, h, 0), Vector3(0.45, 0.12, 0.45), CritterVisual._glass(Color(1.0, 0.45, 0.15), 0.95, 2.5))
+		_solid(root, p, 0.6)
+		var smoke := CPUParticles3D.new()
+		smoke.amount = 10 if Platform.is_low() else 20
+		smoke.lifetime = 3.0
+		smoke.direction = Vector3.UP
+		smoke.spread = 8.0
+		smoke.gravity = Vector3(0, 1.2, 0)
+		smoke.initial_velocity_min = 0.6
+		smoke.initial_velocity_max = 1.2
+		smoke.scale_amount_min = 1.0
+		smoke.scale_amount_max = 3.0
+		var sm := SphereMesh.new()
+		sm.radius = 0.15
+		sm.height = 0.3
+		sm.radial_segments = 6
+		sm.rings = 3
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_color = Color(0.15, 0.12, 0.12, 0.35)
+		sm.material = m
+		smoke.mesh = sm
+		smoke.position = p + Vector3(0, h + 0.1, 0)
+		root.add_child(smoke)
+
+
+static func _sargassum(root: Node3D, level: LevelData, d: RandomNumberGenerator, count: int, keep_clear: Array[Vector3]) -> void:
+	# Floating golden weed rafts overhead (casting shadows) and clumps on the floor.
+	var weed := PartVisual.mat(Color(0.62, 0.5, 0.18), 0, 0.0, 0.8)
+	var berry := PartVisual.mat(Color(0.75, 0.62, 0.25))
+	for i in count:
+		var p := _free_spot(level, d, keep_clear, 2.0)
+		var high := i % 2 == 0
+		var y := d.randf_range(4.0, 6.0) if high else 0.15
+		for j in 5:
+			var off := Vector3(d.randf_range(-1.2, 1.2), d.randf_range(-0.1, 0.1), d.randf_range(-1.2, 1.2))
+			PartVisual._ellipsoid(root, p + off + Vector3(0, y, 0), Vector3(d.randf_range(0.6, 1.2), 0.12, d.randf_range(0.3, 0.6)), weed)
+			PartVisual._ellipsoid(root, p + off + Vector3(0, y + 0.08, 0), Vector3.ONE * 0.1, berry)
+
+
+static func _crystals(root: Node3D, level: LevelData, d: RandomNumberGenerator, count: int, keep_clear: Array[Vector3]) -> void:
+	var ice := CritterVisual._glass(Color(0.75, 0.9, 1.0), 0.75, 0.5)
+	for i in count:
+		var p := _free_spot(level, d, keep_clear, 3.0)
+		for j in d.randi_range(3, 6):
+			var dir := Vector3(d.randf_range(-0.5, 0.5), 1.0, d.randf_range(-0.5, 0.5)).normalized()
+			PartVisual._segment(root, p, p + dir * d.randf_range(0.6, 1.8), d.randf_range(0.12, 0.22), 0.0, ice)
+		if i % 3 == 0:
+			_solid(root, p, 0.5)
+
+
+static func _bones(root: Node3D, level: LevelData, d: RandomNumberGenerator, keep_clear: Array[Vector3]) -> void:
+	# A whale skeleton: a spine with ribs arching over it, plus scattered vertebrae.
+	var bone := PartVisual.mat(Color(0.85, 0.82, 0.74), 0, 0.0, 0.7)
+	var a := d.randf() * TAU
+	var axis := Vector3(cos(a), 0, sin(a))
+	var side := axis.cross(Vector3.UP)
+	var center := axis * 2.0 + side * level.radius * 0.35
+	for i in 9:
+		var p := center + axis * (i - 4) * 1.6
+		PartVisual._ellipsoid(root, p + Vector3(0, 0.3, 0), Vector3(0.6, 0.5, 0.7), bone)
+		if i % 3 == 0:
+			_solid(root, p, 0.5)
+		for s in [-1.0, 1.0]:   # arching ribs
+			var pts := [p + Vector3(0, 0.4, 0), p + side * s * 1.5 + Vector3(0, 2.2, 0), p + side * s * 2.6 + Vector3(0, 0.6, 0)]
+			PartVisual._segment(root, pts[0], pts[1], 0.12, 0.1, bone)
+			PartVisual._segment(root, pts[1], pts[2], 0.1, 0.07, bone)
+	var skull := center + axis * 8.0
+	PartVisual._ellipsoid(root, skull + Vector3(0, 0.7, 0), Vector3(2.2, 1.4, 2.8), bone)
+	_solid(root, skull, 1.3)
+	for i in 8:
+		var p := _free_spot(level, d, keep_clear, 3.0)
+		PartVisual._ellipsoid(root, p + Vector3(0, 0.15, 0), Vector3(0.5, 0.35, 0.4), bone)
 
 
 static func _environment(root: Node3D, level: LevelData) -> void:
@@ -46,7 +205,7 @@ static func _environment(root: Node3D, level: LevelData) -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_light_color = level.fog_color
-	env.fog_density = level.fog_density
+	env.fog_density = level.fog_density * (2.2 if level.has_mod(&"dark") else 1.0)
 	var we := WorldEnvironment.new()
 	we.environment = env
 	root.add_child(we)

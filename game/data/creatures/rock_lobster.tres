@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="CreatureData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
 [ext_resource type="Resource" path="res://data/parts/lobster_crusher.tres" id="2"]
@@ -6,10 +6,12 @@
 [ext_resource type="Resource" path="res://data/parts/lobster_eyes.tres" id="4"]
 [ext_resource type="Resource" path="res://data/parts/lobster_legs.tres" id="5"]
 [ext_resource type="Resource" path="res://data/parts/lobster_shell.tres" id="6"]
+[ext_resource type="Resource" path="res://data/parts/lobster_tail.tres" id="7"]
 
 [resource]
 script = ExtResource("1")
 id = &"rock_lobster"
+min_depth = 2
 display_name = "Rock Lobster"
 size = 0.95
 base_hp = 35.0
@@ -18,6 +20,7 @@ shell = ExtResource("6")
 claw_l = ExtResource("2")
 claw_r = ExtResource("3")
 legs = ExtResource("5")
+tail = ExtResource("7")
 damage_mult = 0.5
 aggro_range = 7.0
 spawn_weight = 1.5

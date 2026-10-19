@@ -13,6 +13,7 @@ var speed_mult := 1.0
 var body: CrabBody
 var equipment: Equipment
 var combat: CrabCombat
+var tail: TailBrain
 
 
 func _ready() -> void:
@@ -30,6 +31,10 @@ func _ready() -> void:
 	combat.crab = self
 	add_child(combat)
 	equipment.changed.connect(_on_equipment_changed)
+	tail = TailBrain.new()
+	tail.name = "Tail"
+	tail.crab = self
+	add_child(tail)
 
 
 func _on_equipment_changed(socket: int) -> void:
@@ -58,3 +63,9 @@ func _play_death() -> void:
 
 func _reset_pose() -> void:
 	body.reset_pose()
+
+
+func _apply_glow() -> void:
+	if body:
+		body.base_overlay = glow_overlay
+		body._set_overlay(body, glow_overlay)

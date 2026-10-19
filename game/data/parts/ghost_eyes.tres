@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ghost_eyes"
+display_name = "Ghost Eyes"
+slot = 0
+description = "Sees you coming. Always."
+max_hp = 0
+attack = 2
+defense = 0
+speed = 1.5
+ability = &""
+color = Color(0.92, 0.88, 0.8, 1)
+accent = Color(0.08, 0.08, 0.08, 1)
+shape = {"stalk": 0.42, "eye": 0.08, "eye_stretch": 0.8, "spread": 0.12}
+special = false

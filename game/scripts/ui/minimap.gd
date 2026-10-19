@@ -43,10 +43,17 @@ func _draw() -> void:
 		var e := n as Creature
 		if e == null or e.is_dead():
 			continue
-		if e.is_boss:
+		if e.is_marked:
+			draw_circle(_to_map(e.global_position), 5.0, Color(0.95, 0.4, 1.0))
+		elif e.is_champion:
+			draw_circle(_to_map(e.global_position), 4.0, Color(1, 0.8, 0.2))
+		elif e.is_boss:
 			draw_circle(_to_map(e.global_position), 6.0, Color(0.85, 0.3, 0.9))
 		else:
 			draw_circle(_to_map(e.global_position), 3.0, Color(1, 0.35, 0.3))
+	for n in get_tree().get_nodes_in_group("portals"):
+		var q := _to_map((n as Node3D).global_position)
+		draw_arc(q, 6.0, 0, TAU, 16, Color(0.45, 0.85, 1.0), 3.0)
 	var pl := level.player
 	if is_instance_valid(pl):
 		var p := _to_map(pl.global_position)

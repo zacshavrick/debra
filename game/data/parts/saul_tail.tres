@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"saul_tail"
+display_name = "Saul's Tail"
+slot = 4
+description = "Tucked under. As crabs do."
+max_hp = 5
+attack = 0
+defense = 1
+speed = 0
+ability = &""
+color = Color(0.72, 0.16, 0.14, 1)
+accent = Color(0.45, 0.08, 0.08, 1)
+shape = {"kind": "tucked", "width": 0.5}
+special = false

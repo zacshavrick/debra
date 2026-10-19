@@ -28,6 +28,8 @@ const STYLES := {
 		"info": "Lash: long, narrow reach"},
 	&"sting": {"damage": 5.0, "cooldown": 0.7, "windup": 0.1, "range": 2.3, "arc": 45.0, "knock": 1.0, "poison": 4.0,
 		"info": "Sting: poisons for 3 s"},
+	&"rake": {"damage": 4.0, "cooldown": 0.55, "windup": 0.08, "range": 1.9, "arc": 160.0, "knock": 1.0, "hits": 3,
+		"info": "Rake: three wide swipes"},
 }
 
 var crab: Crab
@@ -70,7 +72,7 @@ func damage_for(side: int) -> float:
 	var claw := _claw(side)
 	var st: Dictionary = STYLES[style_id(claw)]
 	var base: float = st.damage
-	return (base * Rarity.multiplier(claw.rarity) + crab.equipment.total(&"attack") * 0.5) * crab.damage_mult
+	return (base * claw.power() + crab.equipment.total(&"attack") * 0.5) * crab.damage_mult
 
 
 func try_attack(side: int, dir: Vector3) -> bool:
@@ -116,8 +118,7 @@ func _resolve(id: StringName, dir: Vector3, dmg: float) -> void:
 		return
 	var reach: float = float(st.range) * maxf(crab.size, 1.0)
 	var arc: float = st.arc
-	FX.slash(crab.get_parent(), origin + Vector3(0, 0.35, 0), dir, reach, arc,
-		Color(1, 0.85, 0.6) if crab.team == 0 else Color(1, 0.4, 0.3))
+	FX.claw(crab.get_parent(), origin + Vector3(0, 0.35, 0), dir, reach, arc, id, crab.team)
 	var dealt_total := 0.0
 	for other in Melee.targets(crab, origin, dir, reach, arc):
 		dealt_total += other.receive_hit(dmg, origin, knock, crab)

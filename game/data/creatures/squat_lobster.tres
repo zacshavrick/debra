@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/lobster_eyes.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/lobster_legs.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/squat_claw.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/squat_shell.tres" id="5"]
+[ext_resource type="Resource" path="res://data/parts/squat_tail.tres" id="6"]
+
+[resource]
+script = ExtResource("1")
+id = &"squat_lobster"
+min_depth = 4
+display_name = "Squat Lobster"
+size = 0.8
+base_hp = 24.0
+head = ExtResource("2")
+shell = ExtResource("5")
+claw_l = ExtResource("4")
+claw_r = ExtResource("4")
+legs = ExtResource("3")
+tail = ExtResource("6")
+damage_mult = 0.5
+aggro_range = 8.0
+spawn_weight = 2.0

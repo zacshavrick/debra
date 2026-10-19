@@ -11,6 +11,7 @@
 [resource]
 script = ExtResource("1")
 id = &"hermit_crab"
+min_depth = 2
 display_name = "Hermit Crab"
 size = 0.95
 base_hp = 40.0

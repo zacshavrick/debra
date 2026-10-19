@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"yeti_legs"
+display_name = "Yeti Legs"
+slot = 3
+description = ""
+max_hp = 5
+attack = 0
+defense = 2
+speed = 4
+ability = &""
+color = Color(0.92, 0.9, 0.85, 1)
+accent = Color(0.85, 0.82, 0.75, 1)
+shape = {"length": 1.05, "thick": 0.04, "hairy": true}
+special = false

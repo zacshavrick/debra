@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/blue_claw.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/blue_legs.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/blue_shell.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/shore_eyes.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = &"blue_crab"
+min_depth = 2
+display_name = "Blue Crab"
+size = 0.8
+base_hp = 20.0
+head = ExtResource("5")
+shell = ExtResource("4")
+claw_l = ExtResource("2")
+claw_r = ExtResource("2")
+legs = ExtResource("3")
+damage_mult = 0.5
+aggro_range = 8.0
+spawn_weight = 2.5

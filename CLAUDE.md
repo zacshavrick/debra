@@ -36,6 +36,7 @@ To run Godot directly: `.tools/godot/Godot_v4.7.2-stable_win64_console.exe --pat
 ## Status (2026-10-19)
 - Milestone 1 is done: the shared rig, drops with rarity, equip, combat iteration #1, exe + web exports, and CI.
 - Milestone 2 is done: 5 starters (Debra the Lobster, Saul the Crab, Louise the Shrimp, plus Claude's picks Marjorie the Hermit Crab and Gary the Spider Crab), crab select, world map, 5 levels with bosses and unlocks, 21 creature types (10 non-crustaceans with their own bodies), 75 parts, 7 claw styles, poison, a saved game, and a minimap.
-- **Content is data.** A new creature is a `.tres` in `data/creatures/`. Add it to a level's `enemies` in `data/levels/`. A non-crustacean also needs a `body_kind` in `CritterVisual`.
-- Not verified yet: touch input on a real phone (detection and drawing are checked; real finger input isn't). Balance is first-pass.
+- Milestone 3 is done: the endless dive. Depths 6+ come from `LevelGenerator` (deterministic per depth): biomes, layouts, featured creatures, objectives (cull/waves/hunt), modifiers, and chimera bosses with traits. Every boss adapts to range vs close play (`BossBrain`). A portal opens when the boss dies. Part levels scale stats with depth. A 6th Tail socket acts on its own (`TailBrain`). 36 creature types, 113 parts, glowing attack effects with ground telegraphs.
+- **Content is data.** A new creature is a `.tres` in `data/creatures/`. Give it a `min_depth` and the generator picks it up. A non-crustacean also needs a `body_kind` in `CritterVisual` (bodies animate generically via named nodes).
+- Not verified yet: touch input on a real phone, and balance deep into the dive (past ~depth 30).
 - Next candidates are in DESIGN.md → "Milestones".

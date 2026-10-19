@@ -42,7 +42,7 @@ func _ready() -> void:
 func _default_loadout() -> Array[PartInstance]:
 	var out: Array[PartInstance] = []
 	for p in creature.loadout():
-		out.append(PartInstance.new(p))
+		out.append(PartInstance.new(p) if p else null)
 	return out
 
 

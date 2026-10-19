@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/clam_shell.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"giant_clam"
+min_depth = 6
+display_name = "Giant Clam"
+kind = 1
+body_kind = &"clam"
+size = 1.2
+base_hp = 60.0
+color = Color(0.85, 0.8, 0.7, 1)
+accent = Color(0.3, 0.55, 0.8, 1)
+speed = 0.0
+behaviour = &"turret"
+attack = &"volley"
+damage_mult = 0.5
+aggro_range = 8.0
+spawn_weight = 1.0
+drops = [ExtResource("2")]
+rarity_luck = 0.5

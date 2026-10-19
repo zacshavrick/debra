@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ghost_legs"
+display_name = "Ghost Legs"
+slot = 3
+description = "The fastest legs on the beach."
+max_hp = 0
+attack = 0
+defense = 0
+speed = 9
+ability = &""
+color = Color(0.92, 0.88, 0.8, 1)
+accent = Color(0.8, 0.75, 0.68, 1)
+shape = {"length": 1.25, "thick": 0.03}
+special = false

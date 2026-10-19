@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="CreatureData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
 [ext_resource type="Resource" path="res://data/parts/debra_crusher.tres" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://data/parts/debra_eyes.tres" id="4"]
 [ext_resource type="Resource" path="res://data/parts/debra_legs.tres" id="5"]
 [ext_resource type="Resource" path="res://data/parts/debra_shell.tres" id="6"]
+[ext_resource type="Resource" path="res://data/parts/debra_tail.tres" id="7"]
 
 [resource]
 script = ExtResource("1")
@@ -19,4 +20,5 @@ shell = ExtResource("6")
 claw_l = ExtResource("2")
 claw_r = ExtResource("3")
 legs = ExtResource("5")
+tail = ExtResource("7")
 damage_mult = 1.0

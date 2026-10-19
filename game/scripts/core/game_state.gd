@@ -44,7 +44,7 @@ func loadout_for(id: StringName) -> Array[PartInstance]:
 		var inst: PartInstance = null
 		if s < saved.size() and saved[s] is Dictionary:
 			inst = PartInstance.from_dict(saved[s])
-		if inst == null or not Equipment.accepts(s, inst.data.slot):
+		if (inst == null or not Equipment.accepts(s, inst.data.slot)) and defaults[s] != null:
 			inst = PartInstance.new(defaults[s], Rarity.Tier.COMMON)
 		out.append(inst)
 	return out
@@ -66,7 +66,10 @@ func choose_starter(id: StringName) -> void:
 
 
 # --- Levels --------------------------------------------------------------------------
+# Depths 1-5 are the hand-made levels in data/levels/. Every depth after that is
+# generated (LevelGenerator) and never ends. Clearing depth N unlocks N + 1.
 
+## The hand-made levels, by depth.
 func levels() -> Array[LevelData]:
 	if _levels.is_empty():
 		for f in DirAccess.get_files_at(LEVELS_DIR):
@@ -75,11 +78,25 @@ func levels() -> Array[LevelData]:
 				var l := load(LEVELS_DIR + file) as LevelData
 				if l:
 					_levels.append(l)
-		_levels.sort_custom(func(a: LevelData, b: LevelData) -> bool: return a.order < b.order)
+		_levels.sort_custom(func(a: LevelData, b: LevelData) -> bool: return a.depth < b.depth)
 	return _levels
 
 
+func handmade_count() -> int:
+	return levels().size()
+
+
+func level_at_depth(depth: int) -> LevelData:
+	depth = maxi(depth, 1)
+	if depth <= handmade_count():
+		return levels()[depth - 1]
+	return LevelGenerator.generate(depth)
+
+
 func level(id: StringName) -> LevelData:
+	var s := String(id)
+	if s.begins_with("depth_"):
+		return level_at_depth(int(s.trim_prefix("depth_")))
 	for l in levels():
 		if l.id == id:
 			return l
@@ -90,39 +107,39 @@ func is_cleared(id: StringName) -> bool:
 	return _cleared.has(String(id))
 
 
+## Deepest depth cleared so far (0 = none).
+func deepest_cleared() -> int:
+	return frontier_depth() - 1
+
+
+func frontier_depth() -> int:
+	var d := 1
+	while is_cleared(level_at_depth(d).id):
+		d += 1
+	return d
+
+
 func is_unlocked(id: StringName) -> bool:
 	var l := level(id)
-	if l == null:
-		return false
-	for other in levels():
-		if other.order < l.order and not is_cleared(other.id):
-			return false
-	return true
+	return l != null and l.depth <= frontier_depth()
 
 
-## Returns true if this clear unlocked a new level.
+## Returns true if this clear unlocked a new depth.
 func mark_cleared(id: StringName) -> bool:
 	var first := not is_cleared(id)
 	_cleared[String(id)] = true
 	save_game()
-	return first and next_level(id) != null
+	return first
 
 
 func next_level(id: StringName) -> LevelData:
 	var l := level(id)
-	for other in levels():
-		if other.order == l.order + 1:
-			return other
-	return null
+	return level_at_depth(l.depth + 1) if l else null
 
 
 ## The deepest unlocked level (where "drop in and play" sends you).
 func frontier() -> LevelData:
-	var best := levels()[0]
-	for l in levels():
-		if is_unlocked(l.id):
-			best = l
-	return best
+	return level_at_depth(frontier_depth())
 
 
 # --- Scene flow ----------------------------------------------------------------------

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"barracuda_fang"
+display_name = "Barracuda Fang"
+slot = 2
+description = ""
+max_hp = 0
+attack = 6
+defense = 0
+speed = 1
+ability = &"cut"
+color = Color(0.7, 0.75, 0.78, 1)
+accent = Color(0.95, 0.95, 0.9, 1)
+shape = {"kind": "jaw", "arm": 0.34, "size": 0.24}
+special = false

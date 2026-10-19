@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ray_whip"
+display_name = "Ray Whip"
+slot = 4
+description = "Lashes out whenever it likes."
+max_hp = 0
+attack = 3
+defense = 0
+speed = 0
+ability = &"stab"
+color = Color(0.5, 0.42, 0.35, 1)
+accent = Color(0.85, 0.75, 0.5, 1)
+shape = {"kind": "whip", "length": 1.0}
+special = false

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"gary_tail"
+display_name = "Gary's Tail"
+slot = 4
+description = ""
+max_hp = 3
+attack = 0
+defense = 1
+speed = 0
+ability = &""
+color = Color(0.78, 0.62, 0.4, 1)
+accent = Color(0.55, 0.38, 0.22, 1)
+shape = {"kind": "tucked", "width": 0.45}
+special = false

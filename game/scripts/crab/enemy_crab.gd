@@ -12,29 +12,40 @@ var rng: RandomNumberGenerator
 ## Set by the level: multiplies HP and damage.
 var difficulty := 1.0
 var loot_luck := 0.0
+## Stolen parts this one wears instead of its own, per socket (champions, chimera bosses).
+## They become its drops too.
+var extra_parts: Array[PartData] = []
 
 var _home := Vector3.ZERO
 var _wander_to := Vector3.ZERO
 var _think := 0.0
 var _aggro := false
+var _alert_left := 0.0
 var _next_side := 0
 var _attack_delay := 0.0
 
 
 func _ready() -> void:
 	team = 1
-	size = creature.size
-	is_boss = creature.boss
-	display_name = creature.display_name
+	size = creature.size * size_mult * (1.25 if is_champion else 1.0)
+	is_boss = (creature.boss or is_boss) and not not_boss
+	if display_name == "":
+		display_name = creature.display_name
 	super._ready()
 	add_to_group("enemies")
-	base_hp = creature.base_hp * difficulty
+	base_hp = creature.base_hp * difficulty * hp_mult * (3.0 if is_champion else 1.0)
 	damage_mult = creature.damage_mult * difficulty
 	cooldown_mult = 1.6 if not is_boss else 1.25
 	part_hp_factor = 0.25
 	speed_mult = 0.75
-	equipment.load_loadout(creature.loadout(), Rarity.Tier.COMMON)
+	var lo := creature.loadout()
+	for s in Equipment.SOCKET_COUNT:
+		if s < extra_parts.size() and extra_parts[s] != null:
+			lo[s] = extra_parts[s]
+	equipment.load_loadout(lo, Rarity.Tier.COMMON)
 	health.fill()
+	if glow_overlay:
+		_apply_glow()
 	if rng == null:
 		rng = RandomNumberGenerator.new()
 	_home = global_position
@@ -44,11 +55,12 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _dead:
+	if _dead or is_dashing() or ai_locked():
 		physics_move(Vector3.ZERO, delta, false)
 		return
 	var player := get_tree().get_first_node_in_group("player") as PlayerCrab
 	var wish := Vector3.ZERO
+	_alert_left -= delta
 	_attack_delay -= delta
 	if player and not player.is_dead():
 		var to := player.global_position - global_position
@@ -56,7 +68,7 @@ func _physics_process(delta: float) -> void:
 		var d := to.length()
 		if d < creature.aggro_range:
 			_aggro = true
-		elif d > creature.aggro_range * 2.5 and not is_boss:
+		elif d > creature.aggro_range * 2.5 and not is_boss and _alert_left <= 0.0:
 			_aggro = false
 		if _aggro:
 			var dir := to / maxf(d, 0.01)
@@ -94,8 +106,13 @@ func _on_hit(_amount: float, _source: Creature) -> void:
 
 func _on_died() -> void:
 	super._on_died()
-	Loot.on_enemy_died(self, creature, rng, loot_luck)
+	Loot.on_enemy_died(self, creature, rng, loot_luck, extra_parts)
 	var tw := create_tween()
 	tw.tween_interval(DESPAWN_DELAY * 0.6)
 	tw.tween_property(self, "position:y", position.y - 0.8 * size, DESPAWN_DELAY * 0.4)
 	tw.tween_callback(queue_free)
+
+
+func alert() -> void:
+	_aggro = true
+	_alert_left = 8.0

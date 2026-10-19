@@ -9,6 +9,7 @@
 [resource]
 script = ExtResource("1")
 id = &"giant_isopod"
+min_depth = 5
 display_name = "Giant Isopod"
 size = 1.05
 base_hp = 50.0

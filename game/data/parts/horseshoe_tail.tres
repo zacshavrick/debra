@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"horseshoe_tail"
+display_name = "Horseshoe Spike"
+slot = 4
+description = ""
+max_hp = 0
+attack = 3
+defense = 1
+speed = 0
+ability = &"stab"
+color = Color(0.45, 0.35, 0.25, 1)
+accent = Color(0.3, 0.22, 0.15, 1)
+shape = {"kind": "spike", "width": 0.5, "length": 1.0}
+special = false
