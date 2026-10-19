@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mantis_carapace"
+display_name = "Mantis Carapace"
+slot = 1
+description = ""
+max_hp = 10.0
+attack = 1.0
+defense = 1.0
+speed = 1.0
+ability = &""
+color = Color(0.2, 0.7, 0.55, 1)
+accent = Color(0.95, 0.55, 0.2, 1)
+shape = {"kind": "slim", "width": 0.9, "height": 0.26}
+special = false

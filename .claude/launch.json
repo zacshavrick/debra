@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "debra-web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/serve-web.mjs", "8060"],
+      "port": 8060
+    }
+  ]
+}

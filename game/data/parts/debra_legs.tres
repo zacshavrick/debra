@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"debra_legs"
+display_name = "Debra's Legs"
+slot = 3
+description = "Six reliable legs."
+max_hp = 0.0
+attack = 0.0
+defense = 0.0
+speed = 4.0
+ability = &""
+color = Color(0.93, 0.47, 0.25, 1)
+accent = Color(0.7, 0.3, 0.15, 1)
+shape = {"length": 1.0, "thick": 0.035}
+special = false

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mantis_eyes"
+display_name = "Mantis Eyes"
+slot = 0
+description = "Sees colours you don't."
+max_hp = 0.0
+attack = 3.0
+defense = 0.0
+speed = 0.5
+ability = &""
+color = Color(0.2, 0.75, 0.6, 1)
+accent = Color(0.95, 0.25, 0.45, 1)
+shape = {"stalk": 0.24, "eye": 0.09, "eye_stretch": 1.7, "spread": 0.13, "antennae": 2, "antenna_len": 0.5}
+special = false

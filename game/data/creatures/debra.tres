@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/debra_eyes.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/debra_shell.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/debra_pincer.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/debra_legs.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = &"debra"
+display_name = "Debra"
+playable = true
+size = 1.0
+base_hp = 50.0
+head = ExtResource("2")
+shell = ExtResource("3")
+claw_l = ExtResource("4")
+claw_r = ExtResource("4")
+legs = ExtResource("5")
+damage_mult = 1.0
+aggro_range = 0.0
+preferred_range = 0.0
+spawn_weight = 0.0
+special_drops = []
+special_chance = 0.0
+rarity_luck = 0.0

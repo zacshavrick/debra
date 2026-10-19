@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shore_shell"
+display_name = "Shore Shell"
+slot = 1
+description = ""
+max_hp = 15.0
+attack = 0.0
+defense = 3.0
+speed = 0.5
+ability = &""
+color = Color(0.38, 0.44, 0.2, 1)
+accent = Color(0.24, 0.28, 0.12, 1)
+shape = {"kind": "dome", "width": 1.05, "height": 0.3, "length": 0.8, "spikes": 4}
+special = false

@@ -1,0 +1,18 @@
+# Godot
+.godot/
+*.translation
+export_credentials.cfg
+
+# Local toolchain + build output (see tools/setup-godot.ps1, tools/build.ps1)
+.tools/
+builds/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.blend1
+.vscode/
+.idea/
+node_modules/

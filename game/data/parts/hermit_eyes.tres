@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PartData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/part_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"hermit_eyes"
+display_name = "Hermit Eyes"
+slot = 0
+description = ""
+max_hp = 10.0
+attack = 0.0
+defense = 1.0
+speed = 0.0
+ability = &""
+color = Color(0.72, 0.36, 0.42, 1)
+accent = Color(0.05, 0.05, 0.08, 1)
+shape = {"stalk": 0.34, "eye": 0.06, "spread": 0.09, "antennae": 4, "antenna_len": 0.45}
+special = false

@@ -1,0 +1,47 @@
+; Engine configuration file.
+; Hand-maintained alongside the Godot editor. Keep it diff-friendly.
+
+config_version=5
+
+[application]
+
+config/name="Debra"
+config/description="Seafloor crustacean ARPG. You are what you kill."
+config/version="0.1.0"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/bg_color=Color(0.04, 0.12, 0.2, 1)
+config/icon="res://icon.svg"
+
+[autoload]
+
+Platform="*res://scripts/core/platform.gd"
+PlayerInput="*res://scripts/input/player_input.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="crabs"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1

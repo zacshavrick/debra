@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/parts/hermit_eyes.tres" id="2"]
+[ext_resource type="Resource" path="res://data/parts/hermit_shell.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/hermit_crusher.tres" id="4"]
+[ext_resource type="Resource" path="res://data/parts/shore_pincer.tres" id="5"]
+[ext_resource type="Resource" path="res://data/parts/hermit_legs.tres" id="6"]
+[ext_resource type="Resource" path="res://data/parts/hermit_pearl_shell.tres" id="7"]
+
+[resource]
+script = ExtResource("1")
+id = &"hermit_crab"
+display_name = "Hermit Crab"
+playable = false
+size = 0.95
+base_hp = 40.0
+head = ExtResource("2")
+shell = ExtResource("3")
+claw_l = ExtResource("4")
+claw_r = ExtResource("5")
+legs = ExtResource("6")
+damage_mult = 0.55
+aggro_range = 6.0
+preferred_range = 0.0
+spawn_weight = 2.5
+special_drops = [ExtResource("7")]
+special_chance = 0.08
+rarity_luck = 0.3
