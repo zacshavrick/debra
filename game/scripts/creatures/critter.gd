@@ -89,7 +89,7 @@ func _physics_process(delta: float) -> void:
 	var wish := Vector3.ZERO
 	_alert_left -= delta
 	var b := creature.behaviour
-	if player and not player.is_dead():
+	if player and not player.is_dead() and not player.cloaked:
 		var to := player.global_position - global_position
 		to.y = 0.0
 		var d := to.length()
@@ -108,7 +108,7 @@ func _physics_process(delta: float) -> void:
 				physics_move(Vector3.ZERO, delta, false)
 				return
 			var a := CritterAttack.info(attack)
-			var reach: float = float(a.range) * maxf(size, 1.0) * 0.85 + player.radius()
+			var reach: float = float(a.range) * maxf(size, 1.0) * 0.85 * (CritterAttack.dash_reach(self) if [&"dash", &"pierce"].has(attack) else 1.0) + player.radius()
 			match b:
 				&"turret":
 					pass

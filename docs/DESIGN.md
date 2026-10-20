@@ -36,7 +36,9 @@ Pick a crab → pick a depth on the map → do the objective → beat the boss �
 | **The same depth is always the same level** (seeded from the depth), so "depth 23 is brutal" means the same thing for everyone | Decided |
 | **Part levels:** every part drops at the level's depth. Level multiplies its bonuses (+12% per level; level 11 = ×2.2), on top of rarity. Penalties don't scale; SPD scales gently | Decided (numbers: Default) |
 | Difficulty = 1 + 0.25 × (depth − 1) on enemy HP and damage. Rarity luck = 0.3 × (depth − 1), capped at 3 | Default |
-| The map is an endless scrolling depth chart. The water darkens with depth, and you can see 2 locked depths ahead | Default |
+| **The map branches** (Decided): 2–3 routes per depth that fork and rejoin; a level unlocks when any level leading to it is cleared. Cliffs, kelp, coral, glowing specks and whale bones line the chart, the water darkens with depth, and modifier dots ring each level | Default (look) |
+| **Bosses dash much farther** (×2.2 reach, Decided for the shark boss; applies to every boss charge) | Decided |
+| **Dev skip** (Decided): F5 or SKIP in a level clears it and opens the portal; "DEV: mark cleared" on the map. `GameState.dev_mode` | Decided |
 | **When the boss dies, a portal opens.** No prompt: walk through it whenever, and keep fighting/looting until then | Decided |
 
 ### What makes each generated depth different (Decided ingredients, Default details)
@@ -79,7 +81,7 @@ Pick a crab → pick a depth on the map → do the objective → beat the boss �
 | Splitter | Splits into two half-size champions when it dies |
 
 ## Tails (Decided: a tail attachment that does something out of your control)
-A 6th socket. Tails act on their own; you never trigger them.
+A 6th socket. Tails are passive: they attack or defend on their own, and you never trigger them. (The shark tail was removed from loot: Decided.)
 
 | Tail behaviour | What it does | From |
 |---|---|---|
@@ -88,7 +90,9 @@ A 6th socket. Tails act on their own; you never trigger them.
 | Zap | Chain-zaps up to 3 enemies every ~4 s | Torpedo ray |
 | Lure | Every ~9 s, calls every creature within 18 m to you | Anglerfish |
 | Spines | Sprays spines in all directions when you're hit | Lionfish, mantis shrimp |
-| Surge | Randomly rams you forward, hurting what you hit | Shark tails |
+| Dodge | 20% chance to slip out of a hit completely | Louise, shrimp |
+| Guard | Every 6 s, hardens to block the next hit | Giant isopod |
+| Mend | Always slowly regrowing HP | Squat lobster |
 | Tucked | Nothing. It's a crab | Crab starters |
 
 ## Creatures: 36 types + 5 hand-made bosses
@@ -106,8 +110,8 @@ A 6th socket. Tails act on their own; you never trigger them.
 | Moray Eel | ambusher | dash | Moray Jaw |
 | Sea Snake | melee (venomous) | bite | Sea Snake Fang |
 | Pufferfish | drifter | spines | Puffer Shell |
-| Reef Shark | charger | dash | Shark Jaw, Shark Fin Shell |
-| Hammerhead | charger | pierce | Hammerhead (head), Shark Tail |
+| Reef Shark | charger | dash | Shark Jaw, Shark Fin (rare) |
+| Hammerhead | charger | pierce | Hammerhead (head), Shark Fin (rare) |
 | Barracuda | charger | pierce | Barracuda Fang |
 | Swordfish | charger | pierce | Swordfish Bill |
 | Stingray | charger | dash | Ray Stinger, Ray Whip (tail) |
@@ -128,12 +132,50 @@ Every creature attack has a windup: area attacks show a filling red circle and c
 | Rule | Status |
 |---|---|
 | Each part has its own stats, ability and look | Decided |
-| Rarity is random. Special items drop only from specific creatures (Pearl Conch, King's Crown) | Decided |
-| Transmog unlocks late (data model ready, not built) | Decided |
-| Sockets: Head, Shell, Left claw, Right claw, Legs, **Tail** ("body" = shell; legs are one slot for all six) | Default (tail: Decided) |
-| Rarity: Common / Uncommon / Rare / Epic (×1.0/1.3/1.7/2.2 on bonuses), and part level on top | Default |
-| A swapped-out part drops at your feet (stand-in for storage) | Default |
-| 113 parts so far | — |
+| Rarity is random. Special items drop only from specific creatures (Pearl Conch, King's Crown, Shark Fin) | Decided |
+| Transmog unlocks late (data model ready). The Gold Debra set makes it mostly unnecessary | Decided |
+| Sockets: Head, Shell, Left claw, Right claw, Legs, Tail ("body" = shell; legs are one slot for all six) | Default (tail: Decided) |
+| 114 parts so far | — |
+
+### Loot tiers (Decided: more tiers, a much rarer Gold tier that always has a unique mod)
+| Tier | Bonus multiplier | Base odds | Mod |
+|---|---|---|---|
+| Common | ×1.0 | 60 | — |
+| Uncommon | ×1.3 | 28 | — |
+| Rare | ×1.7 | 10 | — |
+| Epic | ×2.2 | 2 | — |
+| **Legendary** | ×2.8 | 0.4 | always one regular mod |
+| **Gold** | ×3.5 | 0.06 (~1 in 1700 at depth 1) | always one unique gold-only mod |
+
+Luck (depth, bosses, champions, Treasure, Lucky) boosts tiers up to Epic fully, Legendary partly and Gold only a little, so Gold stays rare everywhere. **15% of Gold drops become a Golden Debra piece.** (Numbers: Default.)
+
+**Regular mods (Legendary):** Vampiric, Thorns, Swift, Sturdy, Keen, Lucky, Regen, Magnet.
+**Gold-only mods:** Echo (every claw strike hits again), Detonate (kills explode), Stormcaller (hits chain lightning), Second wind (survive one killing blow per dive), Colossus (+40% HP, bigger, no knockback), Midas (every kill drops an extra part), Timeless (shell cooldowns −40%), Frost (hits slow).
+
+### Sets (Decided: set bonuses for full Epic sets; the Debra set is the best)
+- Each crustacean family's parts form a set (Shore, Hermit, Mantis, Rock Lobster, …, plus each starter's own set).
+- Wear **every piece, all Epic or better**, and the bonus switches on: +20–30% HP/ATK/DEF plus perks that reuse the mods (for example, Shore = Swift, Mantis = Echo, King Crab = Detonate).
+- **Headliner (Debra):** all 6 Debra pieces at **Gold** gives +60% HP/ATK/DEF, Echo, Vampiric ×2, Second wind and Detonate. It's the best gear in the game, so the strongest look in the sea is Debra's own and transmog is mostly unnecessary.
+
+### Shell abilities: Space / gamepad A (Decided: every shell has a basic spacebar ability)
+| Ability | Shells | Cooldown |
+|---|---|---|
+| Dash (quick dodge) | most crab and lobster shells | 1.8 s |
+| Deflector (blocks 80% of damage, bounces shots back) | hermit conches, Marjorie, clam, nautilus | 7 s |
+| Cloak (invisible 3 s; next hit ×2) | mantis, ghost crab, decorator, cuttlebone | 10 s |
+| Spike Burst | urchin, puffer | 5 s |
+| Roll (untouchable rolling charge) | isopod, horseshoe | 6 s |
+| Mend (heal 30%) | starfish, sea cucumber | 12 s |
+| Quake (ground slam) | coconut, king, yeti | 6 s |
+| **Shark Dash** (long, straight ramming charge): the premium one | **Shark Fin** (rare special drop from sharks) | 2.5 s |
+
+Higher rarity shortens cooldowns; Timeless cuts them by 40%.
+
+### Inventory and storage (Decided)
+- **Bag:** 30 slots, shared by every crab. Q / Y / TAKE puts loot in the bag. A part you swap out goes into the bag (or to the floor if the bag is full).
+- **Stash:** 90 slots at home. Reach it at the Coke can in any level (open the inventory there), or with STASH / BAG on the map.
+- **Inventory screen** (I / Tab / Back / INV): what you're wearing, set progress, active mods, bag and stash. It compares stats against what you wear, and lets you equip (L/R for claws), store, or drop/scrap. The game pauses while it's open.
+- **Loot on the floor vanishes after 20 seconds,** blinking for the last 5 (Decided). It floats in a glowing bubble in its rarity colour, so it never looks like a creature (Decided fix: the jelly cap looked like a jellyfish).
 
 ## Combat
 **Open by design.** We will prototype 3–4 versions. **Iteration #1 (built): each claw is an attack.**
@@ -156,10 +198,13 @@ Damage = style damage × claw power (rarity × level) + ½ total ATK. DEF scales
 |---|---|---|---|
 | Move | WASD / arrows | Left stick | Left thumb |
 | Aim | Mouse | Right stick | Auto-aim |
-| Left / right claw | LMB, J / RMB, K | X, LB, LT / B, RB, RT | L CLAW / R CLAW |
-| Equip (left claw) / to right claw | E or F / R | A / Y | EQUIP, EQUIP L / EQUIP R |
+| Left / right claw | LMB, J / RMB, K | LB, LT / RB, RT | L CLAW / R CLAW |
+| Shell ability | Space | A | ABILITY |
+| Take to bag | Q | Y | TAKE |
+| Inventory | I or Tab | Back | INV |
+| Equip (left claw) / to right claw | E or F / R | X / B | EQUIP, EQUIP L / EQUIP R |
 | Back to map | Esc (or the portal) | Start | MAP button |
-| Dev: random part / spawn creature / heal / summon boss | F1 / F2 / F3 / F4 | | |
+| Dev: random part / spawn / heal / boss / skip level | F1 / F2 / F3 / F4 / F5 | | SKIP |
 
 ## Home and progression
 | Rule | Status |
@@ -168,12 +213,12 @@ Damage = style damage × claw power (rarity × level) + ½ total ATK. DEF scales
 | A buildable home from a found object; storage yes, crafting shelved | Decided |
 | A sea town is a maybe for later | Decided (deferred) |
 | The Coke can stands at the north edge of every level: you start and respawn there, and it heals you. On the map, HOME = change crab | Default |
-| **Storage is not built yet** | — |
+| Storage: the stash, reached at the Coke can or from the map | Decided (built) |
 
 ## Open questions
-- [ ] Storage at home: a stash on the map's HOME?
+
 - [ ] Abilities for heads, shells and legs, including exotic parts
-- [ ] A Legendary tier above Epic?
+- [ ] Should Gold drop rates rise past depth ~40?
 - [ ] Is the camera isometric or third-person? (Default: fixed top-down)
 - [ ] Art style
 - [ ] Are Marjorie and Gary keepers?
@@ -185,4 +230,5 @@ Damage = style damage × claw power (rarity × level) + ½ total ATK. DEF scales
 - **Milestone 1 (done):** parts snap onto the shared rig; kills drop parts; equipping changes look and stats; swapping arms changes the attack.
 - **Milestone 2 (done):** 5 starters, crab select, world map, 5 hand-made levels with bosses, sea creatures, saved progress.
 - **Milestone 3 (done):** endless generated depths (biomes, layouts, featured creatures, modifiers, objectives), chimera bosses with traits and adaptive tactics, the portal, part levels, the tail socket, 16 new creatures, new attacks (zap, pull, volley, pierce, rake) and glowing attack effects with telegraphs.
-- **Next candidates:** storage, a Legendary tier, abilities for non-claw parts, combat iteration #2, real models, sound.
+- **Milestone 4 (done):** Legendary and Gold tiers with mods, set bonuses (Gold Debra = Headliner), shell spacebar abilities (Shark Dash on the rare Shark Fin), passive tails (dodge, guard, mend), bag + stash + inventory screen, loot bubbles that vanish after 20 s, a branching and richer map, dev skip, longer boss dashes.
+- **Next candidates:** abilities for heads and legs, combat iteration #2, real models, sound, transmog UI.

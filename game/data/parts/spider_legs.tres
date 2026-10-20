@@ -17,3 +17,4 @@ color = Color(0.62, 0.5, 0.42, 1)
 accent = Color(0.4, 0.3, 0.25, 1)
 shape = {"length": 1.75, "thick": 0.025, "spiky": true}
 special = false
+set_id = &"spider"

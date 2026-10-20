@@ -17,3 +17,4 @@ color = Color(0.7, 0.68, 0.78, 1)
 accent = Color(0.15, 0.15, 0.2, 1)
 shape = {"stalk": 0.06, "eye": 0.09, "spread": 0.16, "antennae": 2, "antenna_len": 0.3}
 special = false
+set_id = &"isopod"

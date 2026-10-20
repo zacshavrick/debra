@@ -22,6 +22,14 @@ var starter: StringName = &""
 var current_level: StringName = &""
 var _loadouts: Dictionary = {}   # starter id -> Array of {id, rarity} (null = default)
 var _cleared: Dictionary = {}    # level id -> true
+## Parts you carry (shared by every crab) and parts stored at home.
+var bag: Array[PartInstance] = []
+var stash: Array[PartInstance] = []
+## Dev tools (skip level etc.). Prototype: on.
+var dev_mode := true
+
+const BAG_SIZE := 30
+const STASH_SIZE := 90
 static var _levels: Array[LevelData] = []
 
 
@@ -65,9 +73,12 @@ func choose_starter(id: StringName) -> void:
 	save_game()
 
 
-# --- Levels --------------------------------------------------------------------------
-# Depths 1-5 are the hand-made levels in data/levels/. Every depth after that is
-# generated (LevelGenerator) and never ends. Clearing depth N unlocks N + 1.
+# --- Levels: a branching chart ------------------------------------------------------
+# Every depth has 1-3 levels ("branches"). Depth 1 is the Sandy Shallows alone;
+# depths 2-5 are the hand-made level (branch 0) plus a generated side route;
+# from depth 6 everything is generated, 2-3 branches per depth, forever.
+# Each node links to 1-2 nodes in the depth below. A node unlocks when any of its
+# parents is cleared, so you choose your route down.
 
 ## The hand-made levels, by depth.
 func levels() -> Array[LevelData]:
@@ -86,45 +97,120 @@ func handmade_count() -> int:
 	return levels().size()
 
 
-func level_at_depth(depth: int) -> LevelData:
-	depth = maxi(depth, 1)
+## How many branches (levels) a depth has.
+func branch_count(depth: int) -> int:
+	if depth <= 1:
+		return 1
 	if depth <= handmade_count():
+		return 2
+	return 2 + (hash("debra-branches-%d" % depth) % 2)
+
+
+func level_at(depth: int, branch: int) -> LevelData:
+	depth = maxi(depth, 1)
+	branch = clampi(branch, 0, branch_count(depth) - 1)
+	if depth <= handmade_count() and branch == 0:
 		return levels()[depth - 1]
-	return LevelGenerator.generate(depth)
+	return LevelGenerator.generate(depth, branch)
+
+
+## The main route's level at a depth (branch 0).
+func level_at_depth(depth: int) -> LevelData:
+	return level_at(depth, 0)
 
 
 func level(id: StringName) -> LevelData:
 	var s := String(id)
 	if s.begins_with("depth_"):
-		return level_at_depth(int(s.trim_prefix("depth_")))
+		var bits := s.trim_prefix("depth_").split("_")
+		return level_at(int(bits[0]), int(bits[1]) if bits.size() > 1 else 0)
 	for l in levels():
 		if l.id == id:
 			return l
 	return null
 
 
+## 0..1 horizontal slot of a branch on the chart.
+func branch_x(depth: int, branch: int) -> float:
+	return (branch + 0.5) / branch_count(depth)
+
+
+## Branches in depth-1 that lead to (depth, branch).
+func parents(depth: int, branch: int) -> Array[int]:
+	var out: Array[int] = []
+	if depth <= 1:
+		return out
+	var pc := branch_count(depth - 1)
+	var x := branch_x(depth, branch)
+	var nearest := 0
+	for p in pc:
+		if absf(branch_x(depth - 1, p) - x) < absf(branch_x(depth - 1, nearest) - x):
+			nearest = p
+	out.append(nearest)
+	# Some routes cross over to a neighbour.
+	for p in pc:
+		if p != nearest and absf(branch_x(depth - 1, p) - x) <= 0.45 and hash("debra-link-%d-%d-%d" % [depth, branch, p]) % 3 == 0:
+			out.append(p)
+	# Every parent must lead somewhere: give orphaned parents this child if it's their nearest.
+	for p in pc:
+		if out.has(p):
+			continue
+		var px := branch_x(depth - 1, p)
+		var best := 0
+		for b in branch_count(depth):
+			if absf(branch_x(depth, b) - px) < absf(branch_x(depth, best) - px):
+				best = b
+		if best == branch:
+			out.append(p)
+	return out
+
+
 func is_cleared(id: StringName) -> bool:
-	return _cleared.has(String(id))
-
-
-## Deepest depth cleared so far (0 = none).
-func deepest_cleared() -> int:
-	return frontier_depth() - 1
-
-
-func frontier_depth() -> int:
-	var d := 1
-	while is_cleared(level_at_depth(d).id):
-		d += 1
-	return d
+	if _cleared.has(String(id)):
+		return true
+	# Saves from before branches used "depth_N" for the main route.
+	var s := String(id)
+	return s.ends_with("_0") and s.begins_with("depth_") and _cleared.has(s.trim_suffix("_0"))
 
 
 func is_unlocked(id: StringName) -> bool:
 	var l := level(id)
-	return l != null and l.depth <= frontier_depth()
+	if l == null:
+		return false
+	if l.depth <= 1:
+		return true
+	for p in parents(l.depth, l.branch):
+		if is_cleared(level_at(l.depth - 1, p).id):
+			return true
+	return false
 
 
-## Returns true if this clear unlocked a new depth.
+## Deepest depth with an unlocked level.
+func frontier_depth() -> int:
+	var d := 1
+	while true:
+		var any := false
+		for b in branch_count(d + 1):
+			if is_unlocked(level_at(d + 1, b).id):
+				any = true
+				break
+		if not any:
+			return d
+		d += 1
+	return d
+
+
+## Deepest depth cleared so far (0 = none).
+func deepest_cleared() -> int:
+	var best := 0
+	for d in range(1, frontier_depth() + 1):
+		for b in branch_count(d):
+			if is_cleared(level_at(d, b).id):
+				best = d
+	return best
+
+
+## Returns true if this was the first clear.
 func mark_cleared(id: StringName) -> bool:
 	var first := not is_cleared(id)
 	_cleared[String(id)] = true
@@ -137,9 +223,17 @@ func next_level(id: StringName) -> LevelData:
 	return level_at_depth(l.depth + 1) if l else null
 
 
-## The deepest unlocked level (where "drop in and play" sends you).
+## Where "drop in and play" sends you: an unlocked, uncleared level at the frontier.
 func frontier() -> LevelData:
-	return level_at_depth(frontier_depth())
+	var d := frontier_depth()
+	var fallback := level_at(d, 0)
+	for b in branch_count(d):
+		var l := level_at(d, b)
+		if is_unlocked(l.id):
+			if not is_cleared(l.id):
+				return l
+			fallback = l
+	return fallback
 
 
 # --- Scene flow ----------------------------------------------------------------------
@@ -165,6 +259,8 @@ func save_game() -> void:
 		"starter": String(starter),
 		"loadouts": _loadouts,
 		"cleared": _cleared.keys(),
+		"bag": bag.map(func(p: PartInstance) -> Dictionary: return p.to_dict()),
+		"stash": stash.map(func(p: PartInstance) -> Dictionary: return p.to_dict()),
 	}
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
@@ -175,6 +271,8 @@ func load_game() -> void:
 	starter = &""
 	_loadouts = {}
 	_cleared = {}
+	bag = []
+	stash = []
 	if not FileAccess.file_exists(save_path):
 		return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(save_path))
@@ -185,6 +283,8 @@ func load_game() -> void:
 	var lo = data.get("loadouts", {})
 	if lo is Dictionary:
 		_loadouts = lo
+	bag = _parts_from(data.get("bag", []))
+	stash = _parts_from(data.get("stash", []))
 	var cl = data.get("cleared", [])
 	if cl is Array:
 		for id in cl:
@@ -197,3 +297,47 @@ func use_save_file(path: String) -> void:
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
 	load_game()
+
+
+# --- Bag and stash -------------------------------------------------------------------
+
+func _parts_from(raw) -> Array[PartInstance]:
+	var out: Array[PartInstance] = []
+	if raw is Array:
+		for d in raw:
+			if d is Dictionary:
+				var p := PartInstance.from_dict(d)
+				if p:
+					out.append(p)
+	return out
+
+
+## Returns false if the bag is full.
+func add_to_bag(p: PartInstance) -> bool:
+	if bag.size() >= BAG_SIZE:
+		return false
+	bag.append(p)
+	save_game()
+	return true
+
+
+func bag_full() -> bool:
+	return bag.size() >= BAG_SIZE
+
+
+## Moves a part between bag and stash. Returns false if the other side is full.
+func move_part(p: PartInstance, to_stash: bool) -> bool:
+	var from := bag if to_stash else stash
+	var to := stash if to_stash else bag
+	if not from.has(p) or to.size() >= (STASH_SIZE if to_stash else BAG_SIZE):
+		return false
+	from.erase(p)
+	to.append(p)
+	save_game()
+	return true
+
+
+func remove_part(p: PartInstance) -> void:
+	bag.erase(p)
+	stash.erase(p)
+	save_game()

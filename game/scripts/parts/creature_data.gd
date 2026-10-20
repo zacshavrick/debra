@@ -104,4 +104,4 @@ func roll_drop(rng: RandomNumberGenerator, extra_luck := 0.0, part_level := 1) -
 		if own.is_empty():
 			return null
 		part = own[rng.randi() % own.size()]
-	return PartInstance.new(part, Rarity.roll(rng, rarity_luck + extra_luck), part_level)
+	return PartInstance.roll(part, rng, rarity_luck + extra_luck, part_level)

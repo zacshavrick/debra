@@ -17,3 +17,4 @@ color = Color(0.92, 0.88, 0.8, 1)
 accent = Color(0.8, 0.75, 0.68, 1)
 shape = {"length": 1.25, "thick": 0.03}
 special = false
+set_id = &"ghost"

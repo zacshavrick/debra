@@ -18,6 +18,11 @@ const ATTACKS := {
 }
 
 
+## Bosses charge more than twice as far (the shark boss especially needed it).
+static func dash_reach(c: Creature) -> float:
+	return 2.2 if c.is_boss else 1.0
+
+
 static func info(id: StringName) -> Dictionary:
 	return ATTACKS.get(id, ATTACKS[&"bite"])
 
@@ -33,7 +38,7 @@ static func telegraph(c: Creature, id: StringName, dir: Vector3, windup: float) 
 		&"spines":
 			FX.warn_circle(parent, c.global_position, float(a.range) * 0.5, windup, Color(0.75, 0.4, 1.0))
 		&"dash", &"pierce":
-			var length: float = float(a.dash_speed) * float(a.dash_time)
+			var length: float = float(a.dash_speed) * float(a.dash_time) * dash_reach(c)
 			FX.warn_lane(parent, c.global_position, dir, length, c.radius() * 2.0, windup)
 		&"zap":
 			FX.burst(parent, c.global_position + Vector3(0, 0.6 * c.size, 0), a.color, 10, 1.5, 0.05)
@@ -77,10 +82,10 @@ static func perform(c: Creature, id: StringName, dir: Vector3, target: Creature)
 				var s := BubbleShot.fire(c, origin + Vector3(0, 0.4, 0) + d * c.radius(), d, dmg, a.speed, a.range, a.color, 0.1)
 				s.stretch = 2.5
 		&"dash":
-			c.start_dash(dir, a.dash_speed, a.dash_time, dmg, a.knock, false)
+			c.start_dash(dir, float(a.dash_speed) * (1.2 if c.is_boss else 1.0), float(a.dash_time) * dash_reach(c) / (1.2 if c.is_boss else 1.0), dmg, a.knock, false)
 			FX.burst(parent, origin + Vector3(0, 0.3, 0), Color(0.8, 0.95, 1.0), 10, 2.0, 0.07)
 		&"pierce":
-			c.start_dash(dir, a.dash_speed, a.dash_time, dmg, a.knock, true)
+			c.start_dash(dir, float(a.dash_speed) * (1.2 if c.is_boss else 1.0), float(a.dash_time) * dash_reach(c) / (1.2 if c.is_boss else 1.0), dmg, a.knock, true)
 			FX.burst(parent, origin + Vector3(0, 0.3, 0), Color(0.8, 0.95, 1.0), 14, 3.0, 0.07)
 		&"zap":
 			if is_instance_valid(target) and target.global_position.distance_to(origin) <= float(a.range) * maxf(c.size, 1.0) + 0.5:

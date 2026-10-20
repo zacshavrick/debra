@@ -17,3 +17,4 @@ color = Color(0.92, 0.9, 0.85, 1)
 accent = Color(0.85, 0.82, 0.75, 1)
 shape = {"kind": "pincer", "arm": 0.36, "size": 0.28, "hairy": true}
 special = false
+set_id = &"yeti"

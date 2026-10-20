@@ -36,6 +36,8 @@ enum Slot { HEAD, SHELL, CLAW, LEGS, TAIL }
 @export_group("Drops")
 ## Special parts only drop from creatures that list them in `special_drops`.
 @export var special := false
+## Gear set this part belongs to (its crustacean family), see Sets. "" = none.
+@export var set_id: StringName = &""
 
 const STATS: Array[StringName] = [&"max_hp", &"attack", &"defense", &"speed"]
 const STAT_LABELS := {&"max_hp": "HP", &"attack": "ATK", &"defense": "DEF", &"speed": "SPD"}

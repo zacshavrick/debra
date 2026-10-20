@@ -43,6 +43,8 @@ var _spawn_timer := 1.0
 var _wave_timer := 2.0
 var _home_pos := Vector3.ZERO
 var _riptide_angle := 0.0
+var touch: TouchControls
+var inventory: InventoryUI
 
 
 func _ready() -> void:
@@ -77,9 +79,11 @@ func _ready() -> void:
 	var touch_layer := CanvasLayer.new()
 	touch_layer.layer = 10
 	add_child(touch_layer)
-	touch_layer.add_child(TouchControls.new())
+	touch = TouchControls.new()
+	touch_layer.add_child(touch)
 	PlayerInput.debug_pressed.connect(_on_debug)
 	PlayerInput.menu_pressed.connect(back_to_map)
+	PlayerInput.inventory_pressed.connect(open_inventory)
 	match level.objective:
 		&"hunt":
 			marked_left = level.objective_count
@@ -101,11 +105,38 @@ func _exit_tree() -> void:
 	Creature.water_current = Vector3.ZERO
 	if PlayerInput.debug_pressed.is_connected(_on_debug):
 		PlayerInput.debug_pressed.disconnect(_on_debug)
+	if PlayerInput.inventory_pressed.is_connected(open_inventory):
+		PlayerInput.inventory_pressed.disconnect(open_inventory)
+	get_tree().paused = false
 	if PlayerInput.menu_pressed.is_connected(back_to_map):
 		PlayerInput.menu_pressed.disconnect(back_to_map)
 
 
+## The inventory (I / Tab / Back / INV). The stash is only reachable at home.
+func open_inventory() -> void:
+	if is_instance_valid(inventory) or player.is_dead():
+		return
+	inventory = InventoryUI.new()
+	inventory.player = player
+	inventory.at_home = player.global_position.distance_to(player.home_position) < PlayerCrab.HOME_RADIUS + 1.0
+	add_child(inventory)
+
+
+## Dev: finish the level right now (clears it and opens the portal).
+func dev_skip() -> void:
+	if is_cleared:
+		return
+	if not _boss_called:
+		spawn_boss()
+	if is_instance_valid(boss):
+		boss.damage_taken_mult = 1.0
+		while not boss.is_dead():
+			boss.receive_hit(1.0e9, boss.global_position, 0.0, null)
+
+
 func back_to_map() -> void:
+	if is_instance_valid(inventory):
+		return
 	GameState.go_to_map()
 
 
@@ -121,6 +152,11 @@ func objective_status() -> String:
 		&"hunt":
 			return "marked %d / %d" % [level.objective_count - marked_left, level.objective_count]
 	return "%d / %d" % [mini(kills, level.objective_count), level.objective_count]
+
+
+func _process(_delta: float) -> void:
+	if touch and is_instance_valid(player):
+		touch.ability_ready = player.shell_ability.ready_fraction()
 
 
 func _physics_process(delta: float) -> void:
@@ -372,12 +408,15 @@ func _on_debug(key: int) -> void:
 	match key:
 		KEY_F1:
 			var parts := PartCatalog.all_parts()
-			var part := PartInstance.new(parts[rng.randi() % parts.size()], Rarity.roll(rng, 1.0), level.depth)
+			var part := PartInstance.roll(parts[rng.randi() % parts.size()], rng, 1.0, level.depth)
 			PartPickup.spawn(self, player.global_position + player.facing * 1.2, part)
 		KEY_F2:
 			spawn_enemy(_pick_creature(), player.global_position + player.facing * 6.0)
 		KEY_F3:
 			player.health.fill()
+		KEY_F5:
+			if GameState.dev_mode:
+				dev_skip()
 		KEY_F4:
 			if not _boss_called:
 				spawn_boss()

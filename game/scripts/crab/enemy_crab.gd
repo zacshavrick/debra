@@ -62,7 +62,7 @@ func _physics_process(delta: float) -> void:
 	var wish := Vector3.ZERO
 	_alert_left -= delta
 	_attack_delay -= delta
-	if player and not player.is_dead():
+	if player and not player.is_dead() and not player.cloaked:
 		var to := player.global_position - global_position
 		to.y = 0.0
 		var d := to.length()

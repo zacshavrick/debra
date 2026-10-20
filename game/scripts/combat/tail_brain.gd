@@ -12,6 +12,9 @@ const TAILS := {
 	&"lure": {"info": "Lure: every so often, calls every creature to you", "period": 9.0, "radius": 18.0},
 	&"spines": {"info": "Spines: sprays spines when you're hit", "chance": 0.6, "cooldown": 1.0, "damage": 4.0, "count": 8},
 	&"surge": {"info": "Surge: randomly rams you forward", "period": 5.0, "damage": 6.0},
+	&"dodge": {"info": "Dodge: a 20% chance to slip out of any hit completely"},
+	&"guard": {"info": "Guard: every 6 s it hardens to block the next hit", "period": 6.0},
+	&"regen": {"info": "Mend: slowly regrows your HP, always"},
 }
 
 signal triggered(kind: StringName)
@@ -101,6 +104,11 @@ func _physics_process(delta: float) -> void:
 				if c and c.team != crab.team and not c.is_dead() and c.global_position.distance_to(crab.global_position) < float(cfg.radius):
 					c.alert()
 			_fire(kind)
+		&"guard":
+			if crab.guard_charges < 1:
+				crab.guard_charges = 1
+				FX.ring(crab.get_parent(), crab.global_position + Vector3(0, 0.4, 0), crab.radius() * 2.0, Color(1.0, 0.9, 0.5), 0.4)
+				_fire(kind)
 		&"surge":
 			crab.start_dash(crab.facing, 12.0, 0.25, _power(cfg.damage), 4.0, true)
 			FX.burst(crab.get_parent(), crab.global_position + Vector3(0, 0.3, 0), Color(0.8, 0.95, 1.0), 10, 2.0, 0.07)

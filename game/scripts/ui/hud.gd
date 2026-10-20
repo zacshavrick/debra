@@ -20,6 +20,7 @@ var _boss_box: VBoxContainer
 var _boss_name: Label
 var _boss_bar: ProgressBar
 var _mods: Label
+var _ability: Label
 
 var _minimap: Minimap
 
@@ -54,13 +55,15 @@ func _ready() -> void:
 		for m in level.level.modifiers:
 			names.append(String(LevelGenerator.MODIFIERS.get(m, String(m))).get_slice(":", 0))
 		_mods.text = " · ".join(names)
-	var map_btn := Button.new()
-	map_btn.text = "MAP"
-	map_btn.custom_minimum_size = Vector2(90, 40)
-	map_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	map_btn.focus_mode = Control.FOCUS_NONE
-	map_btn.pressed.connect(func() -> void: GameState.go_to_map())
-	tl.add_child(map_btn)
+	var btns := HBoxContainer.new()
+	btns.add_theme_constant_override("separation", 8)
+	tl.add_child(btns)
+	btns.add_child(_small_button("MAP", func() -> void: GameState.go_to_map()))
+	btns.add_child(_small_button("INV", func() -> void: level.open_inventory()))
+	if GameState.dev_mode:
+		btns.add_child(_small_button("SKIP", func() -> void: level.dev_skip()))
+	_ability = _label("", 15, Color(0.6, 0.88, 1.0))
+	tl.add_child(_ability)
 
 	# Top-right: minimap + equipped parts
 	var tr := VBoxContainer.new()
@@ -120,6 +123,8 @@ func _ready() -> void:
 
 
 	player.equipped.connect(_on_equipped)
+	player.took.connect(func(p: PartInstance) -> void: toast("Bag: %s" % p.full_name(), Rarity.color_of(p.rarity)))
+	player.bag_full.connect(func() -> void: toast("Your bag is full. Store parts at home.", Color(1, 0.6, 0.4)))
 	player.respawned.connect(func() -> void: toast("Back home.", Color(0.7, 0.9, 1.0)))
 	player.died.connect(func(_c: Creature) -> void: toast("%s got cracked..." % player.display_name.get_slice(" ", 0), Color(1, 0.5, 0.4)))
 	if level:
@@ -157,7 +162,15 @@ func _process(delta: float) -> void:
 	_hp_bar.max_value = h.max_hp
 	_hp_bar.value = h.hp
 	_hp_label.text = "%d / %d" % [ceili(h.hp), roundi(h.max_hp)]
-	_stats.text = "ATK %d   DEF %d   SPD %.1f" % [roundi(player.equipment.total(&"attack")), roundi(h.defense), player.move_speed]
+	_stats.text = "ATK %d   DEF %d   SPD %.1f" % [roundi(player.equipment.total(&"attack") * player.gear_damage_mult), roundi(h.defense), player.move_speed]
+	var sa := player.shell_ability
+	var ab := String(ShellAbility.ABILITIES[sa.kind()].info).get_slice(":", 0)
+	_ability.text = "%s %s: %s" % [_space_hint(), ab, "ready" if sa.cooldown_left <= 0.0 else "%.1fs" % sa.cooldown_left]
+	if not player.active_sets.is_empty():
+		var names: Array[String] = []
+		for s in player.active_sets:
+			names.append(Sets.title_of(s))
+		_ability.text += "\nSet: " + ", ".join(names)
 	if level and level.level:
 		var l := level.level
 		_progress.text = "%s  ·  %s" % [l.display_name, level.objective_status()]
@@ -260,3 +273,21 @@ func _box(col: Color, pad := 0) -> StyleBoxFlat:
 	sb.set_corner_radius_all(6)
 	sb.set_content_margin_all(pad)
 	return sb
+
+
+func _small_button(text: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(70, 40)
+	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(cb)
+	return b
+
+
+func _space_hint() -> String:
+	match PlayerInput.scheme:
+		PlayerInput.Scheme.KEYBOARD_MOUSE:
+			return "[Space]"
+		PlayerInput.Scheme.GAMEPAD:
+			return "[A]"
+	return ""

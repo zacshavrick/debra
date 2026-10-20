@@ -17,3 +17,4 @@ color = Color(0.95, 0.85, 0.3, 1)
 accent = Color(0.95, 0.95, 0.9, 1)
 shape = {"kind": "pincer", "arm": 0.36, "size": 0.46}
 special = false
+set_id = &"fiddler"

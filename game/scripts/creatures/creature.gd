@@ -44,6 +44,18 @@ var hp_mult := 1.0
 var not_boss := false
 ## Permanent overlay (dark water / champion glow); hit flashes return to it.
 var glow_overlay: Material
+## 0..1: how much knockback is ignored (Colossus).
+var knock_resist := 0.0
+## Fraction of max HP healed per second (Regen).
+var regen := 0.0
+## Chance to slip out of a hit entirely (Dodge tail).
+var dodge_chance := 0.0
+## Hits fully blocked before taking damage (Guard tail).
+var guard_charges := 0
+## Deflector shield up: projectiles bounce back.
+var reflecting := false
+## Cloaked: enemies can't see you.
+var cloaked := false
 
 var health: Health
 
@@ -62,6 +74,9 @@ var _dash_dmg := 0.0
 var _dash_knock := 0.0
 var _dash_hit: Array[Creature] = []
 var _dash_pierce := false
+var _slow_left := 0.0
+var _slow_mult := 1.0
+var _last_hitter: Creature
 
 
 func _ready() -> void:
@@ -115,18 +130,28 @@ func face_now(dir: Vector3) -> void:
 func receive_hit(raw: float, from: Vector3, knock: float, source: Creature) -> float:
 	if _dead:
 		return 0.0
+	if dodge_chance > 0.0 and randf() < dodge_chance:
+		FX.burst(get_parent(), global_position + Vector3(0, 0.5, 0), Color(0.8, 0.95, 1.0), 6, 2.0, 0.05)
+		return 0.0
+	if guard_charges > 0:
+		guard_charges -= 1
+		FX.ring(get_parent(), global_position + Vector3(0, 0.4, 0), radius() * 2.2, Color(1.0, 0.9, 0.5))
+		return 0.0
 	var dealt := health.take_hit(raw * damage_taken_mult, source)
 	if dealt <= 0.0:
 		return 0.0
 	var away := global_position - from
 	away.y = 0.0
-	var k := knock * (0.25 if is_boss else 1.0)
+	var k := knock * (0.25 if is_boss else 1.0) * (1.0 - knock_resist)
 	_knock = away.normalized() * k if away.length() > 0.01 else Vector3.ZERO
 	_stagger = 0.05 if is_boss else 0.12
 	_flash()
 	FX.number(get_parent(), global_position + Vector3(0, 1.1 * size, 0), dealt,
 		Color(1, 0.35, 0.3) if team == 0 else Color(1, 0.95, 0.8))
 	FX.burst(get_parent(), global_position + Vector3(0, 0.5 * size, 0), Color(1, 0.9, 0.7), 5, 2.5, 0.05)
+	if is_instance_valid(source):
+		_last_hitter = source
+		source._on_dealt_hit(self, dealt)
 	if is_instance_valid(source) and not source.is_dead():
 		if source.venom > 0.0:
 			poison(source.venom, 3.0)
@@ -180,6 +205,11 @@ func physics_move(wish: Vector3, delta: float, turn_to_wish := true, speed_scale
 		_dash_step(delta)
 		_tick_poison(delta)
 		return
+	if _slow_left > 0.0:
+		_slow_left -= delta
+		speed_scale *= _slow_mult
+	if regen > 0.0 and not _dead:
+		health.heal(health.max_hp * regen * delta)
 	var target := wish * move_speed * speed_scale
 	if _stagger > 0.0 or _dead:
 		_stagger -= delta
@@ -221,6 +251,8 @@ func _on_died() -> void:
 	_play_death()
 	collision_layer = 0
 	died.emit(self)
+	if is_instance_valid(_last_hitter) and not _last_hitter.is_dead():
+		_last_hitter._on_killed(self)
 
 
 ## Revive in place with full health (player respawn).
@@ -249,6 +281,22 @@ static func glow_material(col: Color) -> StandardMaterial3D:
 
 
 # --- Hooks for subclasses ---------------------------------------------------------
+
+## Slow down (Frost): move at `mult` speed for `sec`.
+func slow(mult: float, sec: float) -> void:
+	_slow_mult = minf(_slow_mult if _slow_left > 0.0 else 1.0, mult)
+	_slow_left = maxf(_slow_left, sec)
+
+
+## Called on the attacker after it damages something (mods hook in here).
+func _on_dealt_hit(_target: Creature, _dealt: float) -> void:
+	pass
+
+
+## Called on whoever landed the killing blow.
+func _on_killed(_victim: Creature) -> void:
+	pass
+
 
 ## Something (a lure tail, a boss summon) wants this creature to come and fight.
 func alert() -> void:

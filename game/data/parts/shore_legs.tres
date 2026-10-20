@@ -17,3 +17,4 @@ color = Color(0.4, 0.45, 0.22, 1)
 accent = Color(0.3, 0.33, 0.15, 1)
 shape = {"length": 1.15, "thick": 0.032}
 special = false
+set_id = &"shore"

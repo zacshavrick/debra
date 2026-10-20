@@ -10,6 +10,8 @@ var max_hp := 50.0
 var hp := 50.0
 ## Damage is scaled by 25 / (25 + defense): 25 DEF halves incoming damage.
 var defense := 0.0
+## Optional: called when a hit would kill. Return true to survive (Second wind).
+var cheat_death: Callable
 
 
 func is_dead() -> bool:
@@ -35,6 +37,11 @@ func take_hit(raw: float, source: Node3D = null) -> float:
 	if is_dead():
 		return 0.0
 	var dmg := maxf(1.0, raw * 25.0 / (25.0 + maxf(defense, 0.0)))
+	if hp - dmg <= 0.0 and cheat_death.is_valid() and cheat_death.call():
+		hp = max_hp * 0.3
+		damaged.emit(dmg, source)
+		changed.emit()
+		return dmg
 	hp = maxf(hp - dmg, 0.0)
 	damaged.emit(dmg, source)
 	changed.emit()

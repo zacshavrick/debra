@@ -17,3 +17,4 @@ color = Color(0.92, 0.88, 0.8, 1)
 accent = Color(0.08, 0.08, 0.08, 1)
 shape = {"stalk": 0.42, "eye": 0.08, "eye_stretch": 0.8, "spread": 0.12}
 special = false
+set_id = &"ghost"

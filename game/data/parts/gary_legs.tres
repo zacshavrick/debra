@@ -17,3 +17,4 @@ color = Color(0.78, 0.62, 0.4, 1)
 accent = Color(0.55, 0.38, 0.22, 1)
 shape = {"length": 1.6, "thick": 0.026}
 special = false
+set_id = &"gary"

@@ -11,6 +11,12 @@ signal interact_pressed(alt: bool)
 signal debug_pressed(key: int)
 ## Back to the map (Esc / Start / the MAP button).
 signal menu_pressed
+## Shell ability (Space / A / the touch button).
+signal ability_pressed
+## Put the part under you in your bag (Q / Y / BAG).
+signal take_pressed
+## Open the inventory (I or Tab / Back / INV).
+signal inventory_pressed
 
 enum Scheme { KEYBOARD_MOUSE, GAMEPAD, TOUCH }
 enum Claw { LEFT, RIGHT }
@@ -96,7 +102,7 @@ func hint(alt: bool) -> String:
 		Scheme.KEYBOARD_MOUSE:
 			return "R" if alt else "E"
 		Scheme.GAMEPAD:
-			return "Y" if alt else "A"
+			return "B" if alt else "X"
 	return ""
 
 
@@ -105,7 +111,7 @@ func claw_hint(side: int) -> String:
 		Scheme.KEYBOARD_MOUSE:
 			return "LMB / J" if side == Claw.LEFT else "RMB / K"
 		Scheme.GAMEPAD:
-			return "X" if side == Claw.LEFT else "B"
+			return "LB" if side == Claw.LEFT else "RB"
 	return ""
 
 
@@ -133,6 +139,12 @@ func _input(event: InputEvent) -> void:
 	# Mouse events synthesized from touch must not flip us to keyboard/mouse.
 	if event.device == InputEvent.DEVICE_ID_EMULATION:
 		return
+	if event.is_action_pressed("ability"):
+		ability_pressed.emit()
+	if event.is_action_pressed("take"):
+		take_pressed.emit()
+	if event.is_action_pressed("inventory"):
+		inventory_pressed.emit()
 	if event.is_action_pressed("menu"):
 		menu_pressed.emit()
 	if event.is_action_pressed("interact"):
@@ -172,10 +184,13 @@ func _register_default_bindings() -> void:
 	_bind("aim_right", [], [], [[JOY_AXIS_RIGHT_X, 1.0]])
 	_bind("aim_up", [], [], [[JOY_AXIS_RIGHT_Y, -1.0]])
 	_bind("aim_down", [], [], [[JOY_AXIS_RIGHT_Y, 1.0]])
-	_bind("claw_left", [KEY_J], [JOY_BUTTON_X, JOY_BUTTON_LEFT_SHOULDER], [[JOY_AXIS_TRIGGER_LEFT, 1.0]])
-	_bind("claw_right", [KEY_K], [JOY_BUTTON_B, JOY_BUTTON_RIGHT_SHOULDER], [[JOY_AXIS_TRIGGER_RIGHT, 1.0]])
-	_bind("interact", [KEY_E, KEY_F], [JOY_BUTTON_A], [])
-	_bind("interact_alt", [KEY_R], [JOY_BUTTON_Y], [])
+	_bind("claw_left", [KEY_J], [JOY_BUTTON_LEFT_SHOULDER], [[JOY_AXIS_TRIGGER_LEFT, 1.0]])
+	_bind("claw_right", [KEY_K], [JOY_BUTTON_RIGHT_SHOULDER], [[JOY_AXIS_TRIGGER_RIGHT, 1.0]])
+	_bind("interact", [KEY_E, KEY_F], [JOY_BUTTON_X], [])
+	_bind("interact_alt", [KEY_R], [JOY_BUTTON_B], [])
+	_bind("ability", [KEY_SPACE], [JOY_BUTTON_A], [])
+	_bind("take", [KEY_Q], [JOY_BUTTON_Y], [])
+	_bind("inventory", [KEY_I, KEY_TAB], [JOY_BUTTON_BACK], [])
 	_bind("menu", [KEY_ESCAPE], [JOY_BUTTON_START], [])
 
 
@@ -196,3 +211,28 @@ func _bind(action: StringName, keys: Array, buttons: Array, axes: Array) -> void
 		e.axis = a[0]
 		e.axis_value = a[1]
 		InputMap.action_add_event(action, e)
+
+
+## Touch buttons for the new actions (called by TouchControls).
+func touch_ability() -> void:
+	_set_scheme(Scheme.TOUCH)
+	ability_pressed.emit()
+
+
+func touch_take() -> void:
+	_set_scheme(Scheme.TOUCH)
+	take_pressed.emit()
+
+
+func touch_inventory() -> void:
+	_set_scheme(Scheme.TOUCH)
+	inventory_pressed.emit()
+
+
+func take_hint() -> String:
+	match scheme:
+		Scheme.KEYBOARD_MOUSE:
+			return "Q"
+		Scheme.GAMEPAD:
+			return "Y"
+	return ""

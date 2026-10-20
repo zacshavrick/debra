@@ -42,7 +42,12 @@ func _ready() -> void:
 	await _test_objectives()
 	await _test_boss_brain()
 	await _test_modifiers()
+	await _test_loot_tiers_mods_sets()
+	await _test_shell_abilities()
+	await _test_bag_inventory_and_expiry()
+
 	await _test_screens()
+	await _test_branching_and_dev_skip()
 
 	DirAccess.remove_absolute(TEST_SAVE)
 	for f in _failures:
@@ -131,7 +136,7 @@ func _test_generator() -> void:
 	for depth in range(6, 61):
 		var l := GameState.level_at_depth(depth)
 		_check(l != null and l.depth == depth, "depth %d generates" % depth)
-		_check(String(l.id) == "depth_%d" % depth, "depth %d id" % depth)
+		_check(String(l.id) == "depth_%d_0" % depth, "depth %d id" % depth)
 		_check(l.enemy_list().size() >= 5, "depth %d has creatures" % depth)
 		for e in l.enemy_list():
 			_check(e.min_depth <= depth and not e.playable and not e.boss, "depth %d creature %s allowed" % [depth, e.id])
@@ -254,6 +259,7 @@ func _test_equip_changes_look_and_stats() -> void:
 	_check(player.health.defense > def_before, "DEF went up (%.1f -> %.1f)" % [def_before, player.health.defense])
 	var saved := GameState.loadout_for(&"debra")[Equipment.Socket.SHELL]
 	_check(saved.data.id == &"hermit_shell" and saved.level == 3, "mutation (with its level) saved for Debra")
+	_check(GameState.bag.any(func(p: PartInstance) -> bool: return p.data.id == &"debra_shell"), "the swapped-out shell went into the bag")
 
 
 func _test_claw_styles() -> void:
@@ -413,14 +419,15 @@ func _test_save_roundtrip() -> void:
 func _test_rarity_roll() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
-	var counts := [0, 0, 0, 0]
-	for i in 4000:
+	var counts := [0, 0, 0, 0, 0, 0]
+	for i in 40000:
 		counts[Rarity.roll(rng)] += 1
 	_check(counts[0] > counts[1] and counts[1] > counts[2] and counts[2] > counts[3] and counts[3] > 0, "rarity odds ordered %s" % str(counts))
-	var lucky := [0, 0, 0, 0]
-	for i in 4000:
+	var lucky := [0, 0, 0, 0, 0, 0]
+	for i in 40000:
 		lucky[Rarity.roll(rng, 1.0)] += 1
 	_check(lucky[3] > counts[3], "luck raises epic odds (%d vs %d)" % [lucky[3], counts[3]])
+	_check(counts[5] < counts[4] and counts[5] < 60, "gold is much rarer than everything else (%d in 40000)" % counts[5])
 
 
 ## Waves and Hunt bring the boss when done.
@@ -545,10 +552,287 @@ func _test_screens() -> void:
 	var map: WorldMap = load("res://scenes/map.tscn").instantiate()
 	add_child(map)
 	await _frames(5)
-	_check(map._buttons.size() == GameState.frontier_depth() + WorldMap.LOOKAHEAD, "map shows every depth so far plus 2 ahead (%d)" % map._buttons.size())
+	var expect := 0
+	for d in range(1, GameState.frontier_depth() + WorldMap.LOOKAHEAD + 1):
+		expect += GameState.branch_count(d)
+	_check(map._buttons.size() == expect, "map shows every route so far plus 2 depths ahead (%d vs %d)" % [map._buttons.size(), expect])
 	_check(map._selected.depth == 9, "map opens on the frontier (depth %d)" % map._selected.depth)
 	map.queue_free()
 	await _frames(2)
+
+
+## Legendary/Gold tiers roll mods; mods do things; full sets turn on bonuses.
+func _test_loot_tiers_mods_sets() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var claw := PartCatalog.by_id(&"shore_pincer")
+	var legendary_mods := true
+	var gold_mods := true
+	var debra := 0
+	for i in 3000:
+		var p := PartInstance.roll(claw, rng, 40.0, 5)   # absurd luck: lots of high tiers
+		if p.rarity == Rarity.Tier.LEGENDARY and not Mods.REGULAR.has(p.mod):
+			legendary_mods = false
+		if p.rarity == Rarity.Tier.GOLD:
+			if not Mods.GOLD.has(p.mod):
+				gold_mods = false
+			if p.data.set_id == &"debra":
+				debra += 1
+		if p.rarity < Rarity.Tier.LEGENDARY and p.mod != &"":
+			legendary_mods = false
+	_check(legendary_mods, "legendary parts always have a regular mod, lower tiers none")
+	_check(gold_mods, "gold parts always have a unique gold mod")
+	_check(debra > 0, "gold rolls sometimes become Golden Debra pieces (%d)" % debra)
+	var back := PartInstance.from_dict(PartInstance.new(claw, Rarity.Tier.GOLD, 4, &"echo").to_dict())
+	_check(back.mod == &"echo" and back.rarity == Rarity.Tier.GOLD, "mods survive the save format")
+
+	var lv := _open_level(GameState.level_at(3, 0), &"saul")
+	var p := lv.player
+	p.global_position = Vector3.ZERO
+	p.face_now(Vector3.FORWARD)
+	# Echo: one claw press, two hits.
+	p.equip_part(Equipment.Socket.CLAW_L, PartInstance.new(claw, Rarity.Tier.GOLD, 1, &"echo"))
+	var dummy := lv.spawn_enemy(PartCatalog.creature(&"giant_isopod"), Vector3(0, 0, -1.6), false)
+	dummy.lock_ai(60.0)
+	var hits := [0]
+	dummy.health.damaged.connect(func(_a: float, _s: Node3D) -> void: hits[0] += 1)
+	PlayerInput.set_override(Vector2.ZERO, Vector3.FORWARD)
+	PlayerInput.press_claw(PlayerInput.Claw.LEFT, 0.05)
+	await _seconds(0.6)
+	PlayerInput.set_override(null)
+	_check(hits[0] >= 2, "echo makes one strike hit twice (%d hits)" % hits[0])
+	# Vampiric heals.
+	p.equip_part(Equipment.Socket.CLAW_L, PartInstance.new(claw, Rarity.Tier.LEGENDARY, 1, &"vampiric"))
+	p.health.hp = p.health.max_hp * 0.5
+	var hp0 := p.health.hp
+	p.combat._cooldown[0] = 0.0
+	p.combat.try_attack(0, Vector3.FORWARD)
+	await _seconds(0.3)
+	_check(p.health.hp > hp0, "vampiric heals on hit")
+	# Detonate: a kill hurts things nearby.
+	p.equip_part(Equipment.Socket.HEAD, PartInstance.new(PartCatalog.by_id(&"saul_eyes"), Rarity.Tier.GOLD, 1, &"detonate"))
+	var near := lv.spawn_enemy(PartCatalog.creature(&"giant_isopod"), Vector3(1.2, 0, -1.6), false)
+	near.lock_ai(60.0)
+	var near_hp := near.health.hp
+	while not dummy.is_dead():
+		dummy.receive_hit(99999.0, p.global_position, 0.0, p)
+	await _frames(2)
+	_check(near.health.hp < near_hp, "detonate: a kill explodes into neighbours")
+	near.queue_free()
+	# Second wind: survive one killing blow.
+	p.equip_part(Equipment.Socket.HEAD, PartInstance.new(PartCatalog.by_id(&"saul_eyes"), Rarity.Tier.GOLD, 1, &"second_wind"))
+	p.receive_hit(1.0e7, p.global_position + Vector3.FORWARD, 0.0, null)
+	_check(not p.is_dead() and p.health.hp > 0.0, "second wind saves you once")
+	p.receive_hit(1.0e7, p.global_position + Vector3.FORWARD, 0.0, null)
+	_check(p.is_dead(), "...only once")
+	await _seconds(PlayerCrab.RESPAWN_DELAY + 0.3)
+
+	# Sets: every Shore piece at Epic -> Shore set on, with its perk.
+	var shore := Sets.pieces(&"shore")
+	_check(shore.size() >= 4, "shore set has its pieces (%d)" % shore.size())
+	for part in shore:
+		var s: int = Equipment.sockets_for(part.slot)[0]
+		p.equip_part(s, PartInstance.new(part, Rarity.Tier.RARE))
+	_check(not p.active_sets.has(&"shore"), "a set below Epic doesn't count")
+	var hp_before := p.health.max_hp
+	for part in shore:
+		var s: int = Equipment.sockets_for(part.slot)[0]
+		p.equip_part(s, PartInstance.new(part, Rarity.Tier.EPIC))
+	_check(p.active_sets.has(&"shore") and p.has_mod(&"swift"), "full Epic shore set turns on (with Swift)")
+	# Debra at Gold = Headliner.
+	var debra_set := Sets.pieces(&"debra")
+	_check(debra_set.size() == 6, "the Debra set has 6 pieces (%d)" % debra_set.size())
+	for part in debra_set:
+		var s: int = Equipment.sockets_for(part.slot)[0]
+		if part.id == &"debra_cutter":
+			s = Equipment.Socket.CLAW_R
+		p.equip_part(s, PartInstance.new(part, Rarity.Tier.EPIC))
+	_check(not p.active_sets.has(&"debra"), "the Debra set needs Gold, Epic isn't enough")
+	for part in debra_set:
+		var s: int = Equipment.sockets_for(part.slot)[0]
+		if part.id == &"debra_cutter":
+			s = Equipment.Socket.CLAW_R
+		p.equip_part(s, PartInstance.new(part, Rarity.Tier.GOLD))
+	_check(p.active_sets.has(&"debra") and p.has_mod(&"echo") and p.has_mod(&"second_wind"), "full Gold Debra set: Headliner is on")
+	_check(p.health.max_hp > hp_before * 1.5, "Headliner is a big boost (%.0f -> %.0f HP)" % [hp_before, p.health.max_hp])
+	lv.queue_free()
+	await _frames(3)
+	GameState.bag.clear()
+
+
+## Every shell has a spacebar ability, and the main ones work.
+func _test_shell_abilities() -> void:
+	for part in PartCatalog.all_parts():
+		if part.slot == PartData.Slot.SHELL:
+			_check(ShellAbility.ABILITIES.has(part.ability), "shell %s has a spacebar ability (%s)" % [part.id, part.ability])
+	_check(PartCatalog.by_id(&"shark_fin").special and PartCatalog.by_id(&"shark_fin").ability == &"shark_dash", "shark fin = rare Shark Dash")
+	_check(PartCatalog.by_id(&"shark_tail") == null, "shark tail is gone from the loot")
+	var lv := _open_level(GameState.level_at(3, 0), &"saul")
+	var p := lv.player
+	var shell_for := {&"dash": &"saul_shell", &"shark_dash": &"shark_fin", &"shield": &"hermit_shell", &"cloak": &"mantis_carapace",
+		&"spikes": &"urchin_shell", &"quake": &"coconut_shell", &"heal": &"starfish_shell", &"roll": &"isopod_shell"}
+	for k in shell_for:
+		p.global_position = Vector3.ZERO
+		p.equip_part(Equipment.Socket.SHELL, PartInstance.new(PartCatalog.by_id(shell_for[k])))
+		_check(p.shell_ability.kind() == k, "%s gives %s" % [shell_for[k], k])
+		var dummy := lv.spawn_enemy(PartCatalog.creature(&"giant_isopod"), Vector3(0, 0, -2.0), false)
+		dummy.lock_ai(60.0)
+		await _frames(2)
+		var start := p.global_position
+		var hp_e := dummy.health.hp
+		p.health.hp = p.health.max_hp * 0.5
+		var hp_p := p.health.hp
+		var shots := get_tree().get_nodes_in_group("projectiles").size()
+		var use_dir := Vector3.RIGHT if k == &"dash" or k == &"roll" else Vector3.FORWARD
+		_check(p.shell_ability.try_use(use_dir), "%s fires" % k)
+		_check(not p.shell_ability.try_use(Vector3.FORWARD), "%s has a cooldown" % k)
+		await _frames(3)
+		match k:
+			&"dash", &"roll":
+				await _seconds(0.3)
+				_check(p.global_position.distance_to(start) > 1.0, "%s moves you" % k)
+			&"shark_dash":
+				await _seconds(0.5)
+				_check(p.global_position.distance_to(start) > 4.0 and dummy.health.hp < hp_e, "shark dash goes far and rams")
+			&"shield":
+				var before := p.health.hp
+				p.receive_hit(20.0, Vector3(0, 0, -3), 0.0, dummy)
+				_check(before - p.health.hp < 20.0 * 0.4, "deflector blocks most damage")
+				var shot := BubbleShot.fire(dummy, Vector3(0, 0.4, -1.2), Vector3.BACK, 5.0, 8.0, 5.0, Color.WHITE)
+				await _seconds(0.2)
+				_check(not is_instance_valid(shot) or shot.team == p.team, "deflector bounces shots back")
+			&"cloak":
+				_check(p.cloaked, "cloak hides you")
+				dummy.lock_ai(0.0)
+				await _seconds(0.5)
+				_check(not (dummy as EnemyCrab)._aggro, "enemies can't see a cloaked crab")
+			&"spikes":
+				_check(get_tree().get_nodes_in_group("projectiles").size() > shots + 8, "spike burst fires spines")
+			&"quake":
+				_check(dummy.health.hp < hp_e, "quake hits what's around you")
+			&"heal":
+				await _seconds(1.0)
+				_check(p.health.hp > hp_p, "mend heals")
+		await _seconds(0.7)
+		dummy.queue_free()
+		_clear_projectiles()
+		p.shell_ability.cooldown_left = 0.0
+		await _frames(2)
+	# Passive tails: dodge, guard, mend.
+	p.equip_part(Equipment.Socket.TAIL, PartInstance.new(PartCatalog.by_id(&"louise_tail")))
+	_check(p.dodge_chance >= 0.2, "dodge tail gives a dodge chance")
+	p.equip_part(Equipment.Socket.TAIL, PartInstance.new(PartCatalog.by_id(&"squat_tail")))
+	_check(p.regen > 0.0, "mend tail regenerates")
+	p.equip_part(Equipment.Socket.TAIL, PartInstance.new(PartCatalog.by_id(&"isopod_tail")))
+	p.tail._timer = 0.0
+	await _frames(3)
+	var hp1 := p.health.hp
+	p.receive_hit(10.0, p.global_position + Vector3.FORWARD, 0.0, null)
+	_check(p.health.hp == hp1, "guard tail blocks the next hit")
+	# Shark boss: its charge goes much further than a normal shark's.
+	var reef_shark := PartCatalog.creature(&"reef_shark")
+	var boss_shark := PartCatalog.creature(&"boss_reef_shark")
+	var normal := lv.spawn_enemy(reef_shark, Vector3(-8, 0, 8), false)
+	var big := lv.spawn_enemy(boss_shark, Vector3(8, 0, -8), false)
+	await _frames(2)
+	normal.lock_ai(5.0)
+	big.lock_ai(5.0)
+	CritterAttack.perform(normal as Critter, &"dash", Vector3.BACK, null)
+	CritterAttack.perform(big as Critter, &"dash", Vector3.BACK, null)
+	var dn := normal._dash_vel.length() * normal._dash_left   # planned charge length
+	var db := big._dash_vel.length() * big._dash_left
+	_check(db > dn * 1.8, "shark boss dashes much farther (%.1f vs %.1f)" % [db, dn])
+	await _seconds(1.0)
+	lv.queue_free()
+	await _frames(3)
+
+
+## Take to bag, inventory equip/store, loot expiry.
+func _test_bag_inventory_and_expiry() -> void:
+	GameState.bag.clear()
+	GameState.stash.clear()
+	var lv := _open_level(GameState.level_at(2, 0), &"debra")
+	var p := lv.player
+	p.global_position = Vector3.ZERO
+	var part := PartInstance.new(PartCatalog.by_id(&"mantis_eyes"), Rarity.Tier.RARE, 2)
+	var pk := PartPickup.spawn(lv, Vector3(0, 0, -0.4), part, false)
+	await _seconds(0.7)
+	_check(p.focused_pickup == pk, "standing on loot focuses it")
+	PlayerInput.take_pressed.emit()
+	await _frames(2)
+	_check(GameState.bag.has(part), "take puts it in the bag")
+	# Inventory: open, equip from bag, store at home.
+	lv.open_inventory()
+	await _frames(2)
+	_check(is_instance_valid(lv.inventory) and get_tree().paused, "inventory opens and pauses")
+	lv.inventory._select(part, -1)
+	lv.inventory._equip(Equipment.Socket.HEAD)
+	_check(p.equipment.get_part(Equipment.Socket.HEAD) == part and not GameState.bag.has(part), "equip from the bag")
+	_check(GameState.bag.any(func(x: PartInstance) -> bool: return x.data.id == &"debra_eyes"), "the old head went to the bag")
+	lv.inventory.close()
+	await _frames(2)
+	_check(not get_tree().paused, "closing unpauses")
+	p.global_position = p.home_position
+	lv.open_inventory()
+	await _frames(2)
+	_check(lv.inventory.at_home, "at the Coke can you see the stash")
+	var old: PartInstance = GameState.bag[0]
+	lv.inventory._select(old, -1)
+	lv.inventory._move(true)
+	_check(GameState.stash.has(old) and not GameState.bag.has(old), "move a part to the stash")
+	lv.inventory.close()
+	await _frames(2)
+	GameState.load_game()
+	_check(GameState.stash.size() == 1 and GameState.stash[0].data.id == &"debra_eyes", "the stash is saved")
+	# Loot expires.
+	var temp := PartPickup.spawn(lv, Vector3(5, 0, 5), PartInstance.new(PartCatalog.by_id(&"shore_eyes")), false)
+	_check(temp.life == PartPickup.LIFETIME and is_equal_approx(PartPickup.LIFETIME, 20.0), "loot lasts 20 seconds")
+	temp.life = 0.3
+	await _seconds(0.7)
+	_check(not is_instance_valid(temp), "loot disappears when its time runs out")
+	lv.queue_free()
+	await _frames(3)
+
+
+## The chart branches; clearing one route unlocks the levels it leads to. Dev skip works.
+func _test_branching_and_dev_skip() -> void:
+	var orphans := 0
+	var childless := 0
+	for d in range(2, 40):
+		var n := GameState.branch_count(d)
+		_check(n >= 2 and n <= 3, "depth %d has 2-3 routes (%d)" % [d, n])
+		for b in n:
+			if GameState.parents(d, b).is_empty():
+				orphans += 1
+		for pb in GameState.branch_count(d - 1):
+			var has_child := false
+			for b in n:
+				if GameState.parents(d, b).has(pb):
+					has_child = true
+			if not has_child:
+				childless += 1
+	_check(orphans == 0, "every level has a way in (%d orphans)" % orphans)
+	_check(childless == 0, "every level leads somewhere (%d dead ends)" % childless)
+	_check(GameState.level_at(9, 0).boss_name != GameState.level_at(9, 1).boss_name, "routes at the same depth differ")
+	GameState.use_save_file(TEST_SAVE)
+	GameState.mark_cleared(GameState.level_at(1, 0).id)
+	_check(GameState.is_unlocked(GameState.level_at(2, 0).id) and GameState.is_unlocked(GameState.level_at(2, 1).id), "depth 1 opens both routes at depth 2")
+	var side := GameState.level_at(2, 1)
+	GameState.mark_cleared(side.id)
+	var kids := 0
+	for b in GameState.branch_count(3):
+		if GameState.is_unlocked(GameState.level_at(3, b).id):
+			kids += 1
+			_check(GameState.parents(3, b).has(1), "only routes linked to the cleared one unlock")
+	_check(kids >= 1, "clearing a side route unlocks the next depth")
+	_check(GameState.level(&"depth_7") == GameState.level_at(7, 0), "old depth_N ids still resolve")
+	# Dev skip inside a level
+	var lv := _open_level(GameState.level_at(2, 0), &"gary")
+	lv.dev_skip()
+	await _frames(3)
+	_check(lv.is_cleared and is_instance_valid(lv.portal), "dev skip clears the level and opens the portal")
+	lv.queue_free()
+	await _frames(3)
 
 
 # --- Helpers -------------------------------------------------------------------------

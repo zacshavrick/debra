@@ -10,6 +10,8 @@ extends Resource
 @export_multiline var description := ""
 ## 1-based depth. Unlock order, difficulty and part level all follow it.
 @export var depth := 1
+## Which route at this depth (0 = main; hand-made levels are branch 0).
+@export var branch := 0
 ## Position on the world map (x 0..1; y is derived from depth).
 @export var map_pos := Vector2(0.5, 0.5)
 

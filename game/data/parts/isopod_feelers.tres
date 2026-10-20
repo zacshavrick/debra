@@ -17,3 +17,4 @@ color = Color(0.7, 0.68, 0.78, 1)
 accent = Color(0.45, 0.42, 0.52, 1)
 shape = {"kind": "pincer", "arm": 0.28, "size": 0.18}
 special = false
+set_id = &"isopod"

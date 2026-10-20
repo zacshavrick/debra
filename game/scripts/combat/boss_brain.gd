@@ -51,7 +51,7 @@ func has_trait(t: StringName) -> bool:
 
 
 func _player() -> PlayerCrab:
-	return level.player if level and is_instance_valid(level.player) and not level.player.is_dead() else null
+	return level.player if level and is_instance_valid(level.player) and not level.player.is_dead() and not level.player.cloaked else null
 
 
 func _dmg(base: float) -> float:

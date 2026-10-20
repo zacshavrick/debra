@@ -17,3 +17,4 @@ color = Color(0.8, 0.2, 0.15, 1)
 accent = Color(0.95, 0.7, 0.4, 1)
 shape = {"kind": "crusher", "arm": 0.36, "size": 0.38}
 special = false
+set_id = &"king"

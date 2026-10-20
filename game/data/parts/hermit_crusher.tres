@@ -17,3 +17,4 @@ color = Color(0.72, 0.36, 0.42, 1)
 accent = Color(0.25, 0.1, 0.15, 1)
 shape = {"kind": "crusher", "arm": 0.3, "size": 0.34}
 special = false
+set_id = &"hermit"

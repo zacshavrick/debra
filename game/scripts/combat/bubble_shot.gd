@@ -85,6 +85,13 @@ func _physics_process(delta: float) -> void:
 			continue
 		var to := c.global_position - global_position
 		to.y = 0.0
+		if to.length() < c.radius() + radius and c.reflecting:   # bounced off a deflector
+			velocity = -velocity
+			team = c.team
+			source = c
+			_travelled = 0.0
+			FX.ring(get_parent(), global_position, 0.5, Color(0.6, 0.9, 1.0))
+			return
 		if to.length() < c.radius() + radius:
 			c.receive_hit(damage, global_position - velocity.normalized(), knock, source if is_instance_valid(source) else null)
 			if poison_dps > 0.0:

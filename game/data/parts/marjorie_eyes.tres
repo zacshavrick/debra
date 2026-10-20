@@ -17,3 +17,4 @@ color = Color(0.62, 0.38, 0.55, 1)
 accent = Color(0.06, 0.05, 0.08, 1)
 shape = {"stalk": 0.3, "eye": 0.065, "spread": 0.1, "antennae": 2, "antenna_len": 0.4}
 special = false
+set_id = &"marjorie"

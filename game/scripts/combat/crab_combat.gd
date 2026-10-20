@@ -72,7 +72,7 @@ func damage_for(side: int) -> float:
 	var claw := _claw(side)
 	var st: Dictionary = STYLES[style_id(claw)]
 	var base: float = st.damage
-	return (base * claw.power() + crab.equipment.total(&"attack") * 0.5) * crab.damage_mult
+	return (base * claw.power() + crab.equipment.total(&"attack") * 0.5) * crab.damage_mult * crab.gear_damage_mult
 
 
 func try_attack(side: int, dir: Vector3) -> bool:
@@ -93,7 +93,12 @@ func try_attack(side: int, dir: Vector3) -> bool:
 	crab.body.play_attack(socket, id, windup)
 	attacked.emit(side, id)
 	var dmg := damage_for(side)
+	if crab.cloaked:   # striking from the cloak: double damage, and it ends
+		dmg *= 2.0
+		crab.shell_ability.break_cloak()
 	var hits: int = st.get("hits", 1)
+	if crab.has_mod(&"echo"):   # Echo: every strike lands one more time
+		get_tree().create_timer(windup + hits * 0.14 + 0.08, false, true).timeout.connect(_resolve.bind(id, dir, dmg * 0.6))
 	for i in hits:
 		get_tree().create_timer(windup + i * 0.14, false, true).timeout.connect(_resolve.bind(id, dir, dmg))
 	return true

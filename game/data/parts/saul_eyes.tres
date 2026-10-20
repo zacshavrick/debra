@@ -17,3 +17,4 @@ color = Color(0.72, 0.16, 0.14, 1)
 accent = Color(0.08, 0.04, 0.04, 1)
 shape = {"stalk": 0.2, "eye": 0.08}
 special = false
+set_id = &"saul"

@@ -16,6 +16,13 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	GameState.use_save_file(SAVE)
 	GameState.choose_starter(&"debra")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var loot := [&"shark_fin", &"mantis_eyes", &"hermit_crusher", &"octo_tentacles", &"angler_tail", &"debra_crusher", &"urchin_shell", &"blue_claw", &"yeti_legs", &"jelly_bell"]
+	for i in loot.size():
+		var tier := i % 6
+		GameState.bag.append(PartInstance.new(PartCatalog.by_id(loot[i]), tier, 3 + i, Mods.roll_for(tier, rng)))
+	GameState.stash.append(PartInstance.new(PartCatalog.by_id(&"debra_shell"), Rarity.Tier.GOLD, 12, &"echo"))
 	for d in range(1, 8):
 		GameState.mark_cleared(GameState.level_at_depth(d).id)
 
@@ -29,6 +36,11 @@ func _ready() -> void:
 	add_child(map)
 	await _seconds(0.8)
 	await _shot("map")
+	map._open_stash()
+	await _seconds(0.4)
+	map._inventory._select(GameState.bag[5], -1)
+	await _seconds(0.3)
+	await _shot("inventory")
 	map.queue_free()
 	await _seconds(0.1)
 
@@ -80,6 +92,20 @@ func _ready() -> void:
 		n += 1
 	var cam := Camera3D.new()
 	add_child(cam)
+	# Loot row: one part per tier, in their bubbles.
+	var row_parts := [&"jelly_bell", &"shore_pincer", &"mantis_eyes", &"hermit_shell", &"shark_jaw", &"debra_crusher"]
+	var row := Node3D.new()
+	lvl.add_child(row)
+	for t in 6:
+		var pk := PartPickup.spawn(row, Vector3(-6.25 + t * 2.5, 0, 14), PartInstance.new(PartCatalog.by_id(row_parts[t]), t, 9, Mods.roll_for(t, rng)), false)
+		pk.life = 999.0
+	cam.fov = 50
+	cam.global_position = Vector3(0, 5.0, 20.5)
+	cam.look_at(Vector3(0, 0.6, 14))
+	cam.make_current()
+	await _seconds(1.0)
+	await _shot("loot")
+	row.queue_free()
 	cam.fov = 55
 	cam.global_position = Vector3(0, 14, 9.5)
 	cam.look_at(Vector3(0, 0, -2.5))

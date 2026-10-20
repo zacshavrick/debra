@@ -17,3 +17,4 @@ color = Color(0.2, 0.75, 0.6, 1)
 accent = Color(0.95, 0.25, 0.45, 1)
 shape = {"stalk": 0.24, "eye": 0.09, "eye_stretch": 1.7, "spread": 0.13, "antennae": 2, "antenna_len": 0.5}
 special = false
+set_id = &"mantis"

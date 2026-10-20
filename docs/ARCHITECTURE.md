@@ -36,12 +36,12 @@ game/                   the Godot project (res://)
   scripts/
     core/       platform.gd (Platform), game_state.gd (GameState: save + scene flow)
     input/      player_input.gd (PlayerInput), touch_controls.gd
-    parts/      PartData, PartInstance, Rarity, CreatureData, PartCatalog, Equipment, PartVisual
+    parts/      PartData, PartInstance, Rarity, Sets, CreatureData, PartCatalog, Equipment, PartVisual
     creatures/  Creature (base), Critter (non-crustaceans), CritterVisual, Loot
     crab/       CrabBody (shared rig), Crab, PlayerCrab, EnemyCrab
-    combat/     CrabCombat, CritterAttack, TailBrain, BossBrain, Melee, Health, BubbleShot, FX   ← combat iteration #1
+    combat/     CrabCombat, CritterAttack, ShellAbility, TailBrain, BossBrain, Mods, Melee, Health, BubbleShot, FX   ← combat iteration #1
     world/      Level, LevelData, LevelGenerator, LevelBuilder (biomes/layouts), Portal, PartPickup, FollowCamera
-    ui/         HUD, Minimap, WorldMap, CrabSelect
+    ui/         HUD, Minimap, WorldMap, CrabSelect, InventoryUI
   tests/        smoke_test (headless, CI), screenshot (renders docs/screenshots)
 ```
 
@@ -141,3 +141,15 @@ Combat will be rebuilt 3–4 times. Everything combat-specific lives in `scripts
 | 2026-10-19 | 6th socket: Tail, driven by TailBrain (no player input) | Zac asked for a part that acts on its own; keeps claws as the player's buttons |
 | 2026-10-19 | Bosses adapt to range vs close via BossBrain | Zac asked for bosses that change tactics depending on how you play them |
 | 2026-10-19 | Boss death opens a Portal instead of a prompt | Zac: no prompt, leave whenever |
+| 2026-10-19 | Mods reuse one hook set for parts and set perks | One implementation per effect; sets are just bundles of mods |
+| 2026-10-19 | Bag shared by all crabs; stash at home | Switching crabs never strands loot; home stays meaningful |
+| 2026-10-19 | Branching chart from a deterministic graph, not stored | Endless and shareable like the depths themselves |
+
+## Milestone 4 systems
+- **Tiers and mods.** `Rarity.Tier` runs Common to Gold. `PartInstance.roll()` is the one place drops get their tier, their mod (`Mods.roll_for`: a regular mod for Legendary, a gold-only one for Gold) and the Golden Debra swap. Boss and champion guarantees raise the tier with `set_tier()`, which re-rolls the mod for the new tier.
+- **Mods** (`combat/mods.gd`) are data plus hooks. `Crab.apply_stats()` builds `active_mods` (part mods + set perks) and applies the stat multipliers, thorns, regen and knockback resistance. Combat effects run through `Creature._on_dealt_hit()` / `_on_killed()` (called from `receive_hit` and `_on_died` via `_last_hitter`) → `Mods.on_hit` / `on_kill`. Second wind is `Health.cheat_death`. Echo lives in `CrabCombat.try_attack`. Midas and Lucky live in `Loot`.
+- **Sets** (`parts/sets.gd`): `PartData.set_id` (written by the data generator: one id per crustacean family). `Sets.progress/active/stat_mult/perks(equipment)`. A set counts when every piece is worn at its required tier (Epic, or Gold for Debra).
+- **ShellAbility** (child of every Crab): reads the SHELL part's `ability` and implements dash, shield (`damage_taken_mult` + `Creature.reflecting`, which BubbleShot bounces off), cloak (`Creature.cloaked`; enemy AIs and BossBrain ignore cloaked players), shark_dash, spikes, roll, heal and quake. `PlayerCrab` calls `try_use()` on `PlayerInput.ability_pressed`.
+- **Passive tails**: TailBrain handles timed and reactive tails; `Crab.apply_stats` sets `dodge_chance` and `regen` from the tail. Guard grants `guard_charges`. `Creature.receive_hit` checks dodge and guard before damage.
+- **Bag and stash** live in `GameState.bag` / `GameState.stash` (`Array[PartInstance]`, saved as `{id, rarity, level, mod}`). `InventoryUI` is a pausing CanvasLayer. With a player it edits `player.equipment` through `PlayerCrab.equip_from_storage`; on the map it builds a temporary Equipment from the saved loadout and writes it back with `store_loadout`.
+- **Branching chart**: `GameState.branch_count(d)`, `level_at(d, b)`, `parents(d, b)` (nearest parent + seeded cross-links; every node gets ≥1 parent and every parent ≥1 child), `is_unlocked` (any parent cleared), `frontier_depth()`. Generated ids are `depth_D_B`; old `depth_D` ids still resolve to branch 0. `LevelGenerator.generate(depth, branch)` seeds from both.

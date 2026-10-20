@@ -17,3 +17,4 @@ color = Color(0.95, 0.45, 0.2, 1)
 accent = Color(0.98, 0.75, 0.5, 1)
 shape = {"kind": "cutter", "arm": 0.46, "size": 0.22}
 special = false
+set_id = &"squat"

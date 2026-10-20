@@ -17,3 +17,4 @@ color = Color(0.72, 0.16, 0.14, 1)
 accent = Color(0.45, 0.08, 0.08, 1)
 shape = {"kind": "tucked", "width": 0.5}
 special = false
+set_id = &"saul"

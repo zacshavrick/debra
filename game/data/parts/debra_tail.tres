@@ -17,3 +17,4 @@ color = Color(0.93, 0.42, 0.22, 1)
 accent = Color(0.72, 0.25, 0.12, 1)
 shape = {"kind": "fan", "width": 0.5, "length": 1.0}
 special = false
+set_id = &"debra"

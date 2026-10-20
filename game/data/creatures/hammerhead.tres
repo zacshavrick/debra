@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/parts/creature_data.gd" id="1"]
 [ext_resource type="Resource" path="res://data/parts/hammer_head.tres" id="2"]
-[ext_resource type="Resource" path="res://data/parts/shark_tail.tres" id="3"]
+[ext_resource type="Resource" path="res://data/parts/shark_fin.tres" id="3"]
 
 [resource]
 script = ExtResource("1")
@@ -22,5 +22,7 @@ attack = &"pierce"
 damage_mult = 0.55
 aggro_range = 11.0
 spawn_weight = 1.0
-drops = [ExtResource("2"), ExtResource("3")]
+drops = [ExtResource("2")]
+special_drops = [ExtResource("3")]
+special_chance = 0.25
 rarity_luck = 0.5

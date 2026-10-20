@@ -17,3 +17,4 @@ color = Color(0.72, 0.16, 0.14, 1)
 accent = Color(0.25, 0.06, 0.05, 1)
 shape = {"kind": "pincer", "arm": 0.32, "size": 0.27}
 special = false
+set_id = &"saul"

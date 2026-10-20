@@ -15,6 +15,10 @@ var _stick_origin := Vector2.ZERO
 var _stick_pos := Vector2.ZERO
 var _claw_finger: Array[int] = [-1, -1]
 var _ctx_finger: Array[int] = [-1, -1]
+var _ability_finger := -1
+var _take_finger := -1
+## 0..1 how charged the shell ability is (set by the HUD each frame).
+var ability_ready := 1.0
 
 
 func _ready() -> void:
@@ -45,6 +49,14 @@ func _ctx_center(alt: bool) -> Vector2:
 	return _claw_center(1 if alt else 0) - Vector2(0, button_radius * 2.15)
 
 
+func _ability_center() -> Vector2:
+	return _claw_center(0) - Vector2(button_radius * 2.1, -button_radius * 0.35)
+
+
+func _take_center() -> Vector2:
+	return _ability_center() - Vector2(0, button_radius * 1.95)
+
+
 func _ctx_label(alt: bool) -> String:
 	return PlayerInput.prompt_alt if alt else PlayerInput.prompt
 
@@ -72,6 +84,14 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_press(finger: int, pos: Vector2) -> void:
+	if PlayerInput.prompt != "" and pos.distance_to(_take_center()) < button_radius * 0.75:
+		_take_finger = finger
+		PlayerInput.touch_take()
+		return
+	if pos.distance_to(_ability_center()) < button_radius * 0.95:
+		_ability_finger = finger
+		PlayerInput.touch_ability()
+		return
 	for alt in [false, true]:
 		if _ctx_label(alt) != "" and pos.distance_to(_ctx_center(alt)) < button_radius * 0.8:
 			_ctx_finger[1 if alt else 0] = finger
@@ -89,6 +109,10 @@ func _on_press(finger: int, pos: Vector2) -> void:
 
 
 func _on_release(finger: int) -> void:
+	if finger == _ability_finger:
+		_ability_finger = -1
+	if finger == _take_finger:
+		_take_finger = -1
 	if finger == _stick_finger:
 		_stick_finger = -1
 		PlayerInput.touch_move = Vector2.ZERO
@@ -118,6 +142,11 @@ func _draw() -> void:
 		draw_circle(_stick_pos, stick_radius * 0.4, Color(1, 1, 1, 0.45))
 	_button(_claw_center(0), button_radius, Color(1.0, 0.55, 0.35), _claw_finger[0] != -1, "L CLAW", 22)
 	_button(_claw_center(1), button_radius, Color(1.0, 0.8, 0.35), _claw_finger[1] != -1, "R CLAW", 22)
+	_button(_ability_center(), button_radius * 0.85, Color(0.45, 0.8, 1.0), _ability_finger != -1, "ABILITY", 17)
+	if ability_ready < 1.0:
+		draw_arc(_ability_center(), button_radius * 0.85 + 5.0, -PI * 0.5, -PI * 0.5 + TAU * ability_ready, 32, Color(1, 1, 1, 0.8), 5.0)
+	if PlayerInput.prompt != "":
+		_button(_take_center(), button_radius * 0.65, Color(0.6, 1.0, 0.6), _take_finger != -1, "TAKE", 16)
 	for alt in [false, true]:
 		var label := _ctx_label(alt)
 		if label != "":

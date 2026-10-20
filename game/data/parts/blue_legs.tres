@@ -17,3 +17,4 @@ color = Color(0.3, 0.5, 0.85, 1)
 accent = Color(0.75, 0.8, 0.6, 1)
 shape = {"length": 1.1, "thick": 0.03, "paddle": true}
 special = false
+set_id = &"blue"

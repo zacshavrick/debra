@@ -17,3 +17,4 @@ color = Color(0.25, 0.3, 0.38, 1)
 accent = Color(0.6, 0.25, 0.2, 1)
 shape = {"kind": "fan", "width": 0.52, "length": 1.05}
 special = false
+set_id = &"lobster"

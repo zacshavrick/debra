@@ -48,13 +48,15 @@ static func luck(depth: int) -> float:
 	return minf(0.3 * (depth - 1), 3.0)
 
 
-static func generate(depth: int) -> LevelData:
-	if _cache.has(depth):
-		return _cache[depth]
+static func generate(depth: int, branch := 0) -> LevelData:
+	var key := Vector2i(depth, branch)
+	if _cache.has(key):
+		return _cache[key]
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash("debra-depth-%d" % depth)
+	rng.seed = hash("debra-depth-%d" % depth) if branch == 0 else hash("debra-depth-%d-%d" % [depth, branch])
 	var l := LevelData.new()
-	l.id = StringName("depth_%d" % depth)
+	l.id = StringName("depth_%d_%d" % [depth, branch])
+	l.branch = branch
 	l.depth = depth
 	l.map_pos = Vector2(rng.randf_range(0.15, 0.8), 0.0)
 	l.radius = rng.randf_range(22.0, 28.0)
@@ -134,7 +136,7 @@ static func generate(depth: int) -> LevelData:
 	for m in l.modifiers:
 		mods.append(String(MODIFIERS[m]).get_slice(":", 0))
 	l.description = "%s, crawling with %s. %s." % [bd.name, l.featured.display_name, ", ".join(mods)]
-	_cache[depth] = l
+	_cache[key] = l
 	return l
 
 
@@ -147,7 +149,7 @@ static func _make_boss(l: LevelData, rng: RandomNumberGenerator, pool: Array[Cre
 	else:
 		base = l.featured
 	var b := base.duplicate() as CreatureData
-	b.id = StringName("boss_depth_%d" % l.depth)
+	b.id = StringName("boss_depth_%d_%d" % [l.depth, l.branch])
 	b.boss = true
 	b.size = clampf(base.size * 2.1, 1.7, 2.8)
 	b.base_hp = 220.0 + base.base_hp * 2.0

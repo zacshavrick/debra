@@ -7,6 +7,8 @@ extends Crab
 signal equipped(socket: int, part: PartInstance)
 signal respawned
 signal kills_changed(kills: int)
+signal took(part: PartInstance)
+signal bag_full
 
 const PICKUP_RANGE := 1.3
 const RESPAWN_DELAY := 2.0
@@ -37,6 +39,8 @@ func _ready() -> void:
 		equipment.equip(s, parts[s])
 	health.fill()
 	PlayerInput.interact_pressed.connect(_on_interact)
+	PlayerInput.take_pressed.connect(_on_take)
+	PlayerInput.ability_pressed.connect(_on_ability)
 
 
 func _default_loadout() -> Array[PartInstance]:
@@ -91,7 +95,7 @@ func _auto_aim(reach: float) -> Vector3:
 
 func _update_pickup_focus() -> void:
 	var best: PartPickup = null
-	var best_d := PICKUP_RANGE
+	var best_d := PICKUP_RANGE * (2.0 if has_mod(&"magnet") else 1.0)
 	for n in get_tree().get_nodes_in_group("pickups"):
 		var p := n as PartPickup
 		if p == null or not p.can_pick():
@@ -127,21 +131,6 @@ func _on_interact(alt: bool) -> void:
 	equip_part(socket, part, focused_pickup)
 
 
-## Equips a part from a pickup (or from nowhere when pickup is null).
-## The replaced part drops at your feet, so nothing is ever lost.
-func equip_part(socket: int, part: PartInstance, pickup: PartPickup = null) -> void:
-	var drop_at := global_position
-	if pickup:
-		drop_at = pickup.global_position
-		pickup.consume()
-	focused_pickup = null
-	var old := equipment.equip(socket, part)
-	if old:
-		var behind := drop_at - facing * 0.9
-		PartPickup.spawn(get_parent(), behind, old, false)
-	if persist:
-		GameState.store_loadout(creature.id, equipment)
-	equipped.emit(socket, part)
 
 
 func add_kill() -> void:
@@ -159,3 +148,60 @@ func _respawn() -> void:
 	velocity = Vector3.ZERO
 	revive()
 	respawned.emit()
+
+
+func _exit_tree() -> void:
+	for sig in [PlayerInput.interact_pressed, PlayerInput.take_pressed, PlayerInput.ability_pressed]:
+		for c in (sig as Signal).get_connections():
+			if c.callable.get_object() == self:
+				(sig as Signal).disconnect(c.callable)
+
+
+func _on_ability() -> void:
+	if _dead or get_tree().paused:
+		return
+	var aim := PlayerInput.get_aim(global_position, camera)
+	if aim == Vector3.ZERO:
+		var mv := PlayerInput.get_move()
+		aim = Vector3(mv.x, 0, -mv.y) if mv.length() > 0.2 else facing
+	shell_ability.try_use(aim)
+
+
+## Q / Y / TAKE: put the part under you in your bag.
+func _on_take() -> void:
+	if _dead or not is_instance_valid(focused_pickup) or get_tree().paused:
+		return
+	var part := focused_pickup.part
+	if not persist:
+		focused_pickup.consume()
+		focused_pickup = null
+		return
+	if GameState.add_to_bag(part):
+		focused_pickup.consume()
+		focused_pickup = null
+		took.emit(part)
+	else:
+		bag_full.emit()
+
+
+## Equips a part from a pickup (or from nowhere when pickup is null).
+## The replaced part goes into your bag (or drops at your feet if it's full).
+func equip_part(socket: int, part: PartInstance, pickup: PartPickup = null) -> void:
+	var drop_at := global_position
+	if pickup:
+		drop_at = pickup.global_position
+		pickup.consume()
+	focused_pickup = null
+	var old := equipment.equip(socket, part)
+	if old:
+		if not persist or not GameState.add_to_bag(old):
+			PartPickup.spawn(get_parent(), drop_at - facing * 0.9, old, false)
+	if persist:
+		GameState.store_loadout(creature.id, equipment)
+	equipped.emit(socket, part)
+
+
+## Equips a part straight out of the bag or stash (inventory screen).
+func equip_from_storage(socket: int, part: PartInstance) -> void:
+	GameState.remove_part(part)
+	equip_part(socket, part)
