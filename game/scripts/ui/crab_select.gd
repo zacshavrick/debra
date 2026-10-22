@@ -13,7 +13,10 @@ var _name_buttons: Array[Button] = []
 var _name: Label
 var _blurb: Label
 var _stats: Label
-var _reset: Button
+var _continue: Button
+var _new: Button
+var _save_info: Label
+var _confirm_new := false
 var _t := 0.0
 
 
@@ -96,23 +99,23 @@ func _build_ui() -> void:
 	var prev := _button("<", 60)
 	prev.pressed.connect(func() -> void: _set_index((index + crabs.size() - 1) % crabs.size()))
 	row.add_child(prev)
-	var play := _button("PLAY", 220)
-	play.name = "Play"
-	play.pressed.connect(_on_play)
-	row.add_child(play)
+	_continue = _button("CONTINUE", 200)
+	_continue.pressed.connect(_on_continue)
+	row.add_child(_continue)
+	_new = _button("NEW GAME", 200)
+	_new.pressed.connect(_on_new_game)
+	row.add_child(_new)
 	var nxt := _button(">", 60)
 	nxt.pressed.connect(func() -> void: _set_index((index + 1) % crabs.size()))
 	row.add_child(nxt)
-	_reset = Button.new()
-	_reset.text = "Undo mutations"
-	_reset.pressed.connect(_on_reset)
-	v.add_child(_reset)
-	_reset.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	play.grab_focus.call_deferred()
+	_save_info = _label("", 15, Color(1, 0.85, 0.55))
+	_save_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(_save_info)
 
 
 func _set_index(i: int) -> void:
 	index = i
+	_confirm_new = false
 	var id := GameState.STARTERS[i]
 	var data := GameState.starter_data(id)
 	_name.text = data.display_name
@@ -124,34 +127,40 @@ func _set_index(i: int) -> void:
 			continue
 		for st in PartData.STATS:
 			tot[st] = float(tot[st]) + p.stat(st)
-	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s\n%s" % [
+	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s\n%s\nSpace: %s" % [
 		roundi(tot[&"max_hp"]), roundi(tot[&"attack"]), roundi(tot[&"defense"]),
 		maxf(1.5, Crab.BASE_SPEED + float(tot[&"speed"]) * Crab.SPEED_PER_POINT),
 		CrabCombat.style_id(parts[Equipment.Socket.CLAW_L]), CrabCombat.style_id(parts[Equipment.Socket.CLAW_R]),
-		"Tail " + TailBrain.info(parts[Equipment.Socket.TAIL])]
-	_reset.visible = _is_mutated(id)
+		"Tail " + TailBrain.info(parts[Equipment.Socket.TAIL]), ShellAbility.info(parts[Equipment.Socket.SHELL])]
+	var sum := GameState.slot_summary(id)
+	if sum.exists:
+		_save_info.text = "Saved game: deepest depth %d, %d levels cleared, %d parts stored" % [sum.deepest, sum.cleared, sum.parts]
+		_continue.disabled = false
+		_new.text = "NEW GAME"
+		_continue.grab_focus.call_deferred()
+	else:
+		_save_info.text = "No saved game yet: %s starts fresh." % data.display_name.get_slice(" ", 0)
+		_continue.disabled = true
+		_new.text = "START"
+		_new.grab_focus.call_deferred()
 
 
-func _is_mutated(id: StringName) -> bool:
-	var parts := GameState.loadout_for(id)
-	var defaults := GameState.starter_data(id).loadout()
-	for s in Equipment.SOCKET_COUNT:
-		if parts[s] == null or defaults[s] == null:
-			if parts[s] != null or defaults[s] != null:
-				return true
-		elif parts[s].data != defaults[s] or parts[s].rarity != Rarity.Tier.COMMON or parts[s].level != 1:
-			return true
-	return false
+## Each crab is its own saved game: pick it back up where you left off.
+func _on_continue() -> void:
+	GameState.choose_starter(GameState.STARTERS[index])
+	GameState.go_to_map()
 
 
-func _on_reset() -> void:
+## New game: wipes this crab's save. If it has one, press twice to confirm.
+func _on_new_game() -> void:
 	var id := GameState.STARTERS[index]
-	GameState.reset_loadout(id)
-	_dress(crabs[index], id)
-	_set_index(index)
-
-
-func _on_play() -> void:
+	if GameState.has_save(id) and not _confirm_new:
+		_confirm_new = true
+		_new.text = "SURE? WIPES SAVE"
+		_save_info.text = "Press again to start %s over from the beginning (gear, bag, stash and map)." % GameState.starter_data(id).display_name.get_slice(" ", 0)
+		return
+	GameState.new_game(id)
+	GameState.go_to_map()
 	GameState.choose_starter(GameState.STARTERS[index])
 	GameState.go_to_map()
 

@@ -227,7 +227,7 @@ func _show_detail() -> void:
 	var p := _selected
 	if p == null:
 		_detail_title.text = "Pick a part"
-		_detail.text = "[color=#9ab]Your bag is shared by every crab. The stash lives at home: stand by the Coke can in a level, or use STASH on the map.[/color]"
+		_detail.text = "[color=#9ab]Each crab has its own bag and stash (its own saved game). The stash lives at home: stand by the Coke can in a level, or use STASH on the map.[/color]"
 		return
 	_detail_title.text = p.full_name()
 	_detail_title.add_theme_color_override("font_color", Rarity.color_of(p.rarity))

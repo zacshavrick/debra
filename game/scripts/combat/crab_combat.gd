@@ -81,7 +81,7 @@ func try_attack(side: int, dir: Vector3) -> bool:
 	var claw := _claw(side)
 	var id := style_id(claw)
 	var st: Dictionary = STYLES[id]
-	var windup: float = st.windup
+	var windup: float = float(st.windup) * crab.windup_mult
 	var cooldown: float = st.cooldown
 	dir.y = 0.0
 	dir = dir.normalized() if dir.length() > 0.01 else crab.facing

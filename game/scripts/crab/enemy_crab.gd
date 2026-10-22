@@ -35,7 +35,7 @@ func _ready() -> void:
 	add_to_group("enemies")
 	base_hp = creature.base_hp * difficulty * hp_mult * (3.0 if is_champion else 1.0)
 	damage_mult = creature.damage_mult * difficulty
-	cooldown_mult = 1.6 if not is_boss else 1.25
+	cooldown_mult = 1.6 if not is_boss else 1.25 * boss_pace
 	part_hp_factor = 0.25
 	speed_mult = 0.75
 	var lo := creature.loadout()
@@ -82,7 +82,7 @@ func _physics_process(delta: float) -> void:
 			if d <= reach + 0.2 and _attack_delay <= 0.0 and combat.is_ready(_next_side):
 				combat.try_attack(_next_side, dir)
 				_next_side = 1 - _next_side
-				_attack_delay = rng.randf_range(0.25, 0.7) * (0.6 if is_boss else 1.0)
+				_attack_delay = rng.randf_range(0.25, 0.7) * (0.6 * boss_pace if is_boss else 1.0)
 			physics_move(wish, delta, not combat.is_busy())
 			if wish.length() < 0.1 and not combat.is_busy():
 				face_now(facing.slerp(dir, minf(8.0 * delta, 1.0)))

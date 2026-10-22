@@ -147,9 +147,9 @@ func _physics_process(delta: float) -> void:
 ## Starts an attack's windup (bosses call this with other attacks too).
 func begin_attack(id: StringName, dir: Vector3) -> void:
 	var a := CritterAttack.info(id)
-	_windup_total = float(a.windup) * (0.75 if is_boss else 1.0) * cooldown_mult
+	_windup_total = float(a.windup) * (0.75 if is_boss else 1.0) * cooldown_mult * windup_mult
 	_windup = _windup_total
-	_cooldown = float(a.cooldown) * (0.7 if is_boss else 1.0) * cooldown_mult
+	_cooldown = float(a.cooldown) * (0.7 * boss_pace if is_boss else 1.0) * cooldown_mult
 	attack = id
 	CritterAttack.telegraph(self, id, dir, _windup_total)
 

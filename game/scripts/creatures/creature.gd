@@ -38,6 +38,9 @@ var thorns := 0.0
 var venom := 0.0
 ## Part level of anything this creature drops.
 var drop_level := 1
+## Bosses: >1 = more time between attacks (early bosses are gentler). Windups grow by its square root.
+var boss_pace := 1.0
+var windup_mult := 1.0
 ## Set by the level before spawning: size / HP multipliers, and "never a boss" (split pieces).
 var size_mult := 1.0
 var hp_mult := 1.0

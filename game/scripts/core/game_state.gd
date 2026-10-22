@@ -1,12 +1,12 @@
 extends Node
 ## Autoload `GameState`: the save file and scene flow.
-##   - which starter crab you play, and what each starter is wearing
-##     (mutations persist per crab)
-##   - which levels are cleared (clearing one unlocks the next)
+##   - one saved game per crab: what it wears, its bag, its stash, its map
+##     progress. You switch between them on the crab select screen.
+
 ## Saved as JSON at user:// (IndexedDB on the web, so it survives reloads).
 
 const SAVE_PATH := "user://debra_save.json"
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2
 ## Order shown on the crab select screen. Debra headlines.
 const STARTERS: Array[StringName] = [&"debra", &"saul", &"louise", &"marjorie", &"gary"]
 const LEVELS_DIR := "res://data/levels/"
@@ -20,9 +20,12 @@ var save_path := SAVE_PATH
 var starter: StringName = &""
 ## The level being played (set by play_level).
 var current_level: StringName = &""
-var _loadouts: Dictionary = {}   # starter id -> Array of {id, rarity} (null = default)
+## Saves of the crabs you are NOT playing right now: crab id -> {loadout, cleared, bag, stash}.
+var _slots: Dictionary = {}
+## The playing crab's save, live:
+var _loadout: Array = []         # its worn parts as {id, rarity, level, mod}
 var _cleared: Dictionary = {}    # level id -> true
-## Parts you carry (shared by every crab) and parts stored at home.
+## The playing crab's bag and its stash at home.
 var bag: Array[PartInstance] = []
 var stash: Array[PartInstance] = []
 ## Dev tools (skip level etc.). Prototype: on.
@@ -37,17 +40,23 @@ func _ready() -> void:
 	load_game()
 
 
-# --- Starters ------------------------------------------------------------------------
+# --- Starters and save slots ---------------------------------------------------------
+# Every crab is its own saved game: its gear, bag, stash and map progress.
+# CONTINUE picks a crab's save back up; NEW GAME starts that crab over.
 
 func starter_data(id: StringName = &"") -> CreatureData:
 	return PartCatalog.creature(id if id != &"" else starter)
 
 
-## What a starter is wearing: its saved mutations, or its default loadout.
+func has_save(id: StringName) -> bool:
+	return id == starter or _slots.has(String(id))
+
+
+## What a crab is wearing in its save (or its default loadout).
 func loadout_for(id: StringName) -> Array[PartInstance]:
 	var out: Array[PartInstance] = []
 	var defaults := starter_data(id).loadout()
-	var saved: Array = _loadouts.get(String(id), [])
+	var saved: Array = _loadout if id == starter else (_slots.get(String(id), {}) as Dictionary).get("loadout", [])
 	for s in Equipment.SOCKET_COUNT:
 		var inst: PartInstance = null
 		if s < saved.size() and saved[s] is Dictionary:
@@ -59,18 +68,74 @@ func loadout_for(id: StringName) -> Array[PartInstance]:
 
 
 func store_loadout(id: StringName, equipment: Equipment) -> void:
-	_loadouts[String(id)] = equipment.to_array()
+	if id == starter:
+		_loadout = equipment.to_array()
+	else:
+		var slot: Dictionary = _slots.get(String(id), {})
+		slot["loadout"] = equipment.to_array()
+		_slots[String(id)] = slot
 	save_game()
 
 
-func reset_loadout(id: StringName) -> void:
-	_loadouts.erase(String(id))
-	save_game()
-
-
+## Continue: switch to this crab's save (made fresh if it has none yet).
 func choose_starter(id: StringName) -> void:
+	if id == starter:
+		save_game()
+		return
+	_park_active()
 	starter = id
+	_unpark(id)
 	save_game()
+
+
+## New game: wipe this crab's save and start it from the beginning.
+func new_game(id: StringName) -> void:
+	_park_active()
+	_slots.erase(String(id))
+	starter = id
+	_unpark(id)
+	save_game()
+
+
+## Summary of a crab's save for the select screen.
+func slot_summary(id: StringName) -> Dictionary:
+	var cleared: Array = _cleared.keys() if id == starter else (_slots.get(String(id), {}) as Dictionary).get("cleared", [])
+	var n_bag: int = bag.size() if id == starter else ((_slots.get(String(id), {}) as Dictionary).get("bag", []) as Array).size()
+	var n_stash: int = stash.size() if id == starter else ((_slots.get(String(id), {}) as Dictionary).get("stash", []) as Array).size()
+	var deepest := 0
+	for lid in cleared:
+		var l := level(StringName(str(lid)))
+		if l:
+			deepest = maxi(deepest, l.depth)
+	return {"exists": has_save(id), "deepest": deepest, "cleared": cleared.size(), "parts": n_bag + n_stash}
+
+
+## Store the playing crab's live data back into its slot.
+func _park_active() -> void:
+	if starter == &"":
+		return
+	_slots[String(starter)] = _active_dict()
+
+
+## Load a crab's slot into the live fields (empty if it has none).
+func _unpark(id: StringName) -> void:
+	var slot: Dictionary = _slots.get(String(id), {})
+	_slots.erase(String(id))
+	_loadout = slot.get("loadout", [])
+	bag = _parts_from(slot.get("bag", []))
+	stash = _parts_from(slot.get("stash", []))
+	_cleared = {}
+	for lid in slot.get("cleared", []):
+		_cleared[str(lid)] = true
+
+
+func _active_dict() -> Dictionary:
+	return {
+		"loadout": _loadout,
+		"cleared": _cleared.keys(),
+		"bag": bag.map(func(p: PartInstance) -> Dictionary: return p.to_dict()),
+		"stash": stash.map(func(p: PartInstance) -> Dictionary: return p.to_dict()),
+	}
 
 
 # --- Levels: a branching chart ------------------------------------------------------
@@ -252,16 +317,13 @@ func play_level(id: StringName) -> void:
 
 
 # --- Save file -----------------------------------------------------------------------
+# {"version": 2, "current": "debra", "slots": {"debra": {loadout, cleared, bag, stash}, ...}}
 
 func save_game() -> void:
-	var data := {
-		"version": SAVE_VERSION,
-		"starter": String(starter),
-		"loadouts": _loadouts,
-		"cleared": _cleared.keys(),
-		"bag": bag.map(func(p: PartInstance) -> Dictionary: return p.to_dict()),
-		"stash": stash.map(func(p: PartInstance) -> Dictionary: return p.to_dict()),
-	}
+	var slots := _slots.duplicate()
+	if starter != &"":
+		slots[String(starter)] = _active_dict()
+	var data := {"version": SAVE_VERSION, "current": String(starter), "slots": slots}
 	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data, "\t"))
@@ -269,7 +331,8 @@ func save_game() -> void:
 
 func load_game() -> void:
 	starter = &""
-	_loadouts = {}
+	_slots = {}
+	_loadout = []
 	_cleared = {}
 	bag = []
 	stash = []
@@ -278,17 +341,37 @@ func load_game() -> void:
 	var data = JSON.parse_string(FileAccess.get_file_as_string(save_path))
 	if not (data is Dictionary):
 		return
-	var s := StringName(str(data.get("starter", "")))
-	starter = s if STARTERS.has(s) else &""
-	var lo = data.get("loadouts", {})
-	if lo is Dictionary:
-		_loadouts = lo
-	bag = _parts_from(data.get("bag", []))
-	stash = _parts_from(data.get("stash", []))
-	var cl = data.get("cleared", [])
-	if cl is Array:
-		for id in cl:
-			_cleared[str(id)] = true
+	if int(data.get("version", 1)) < 2:
+		_migrate_v1(data)
+	else:
+		var slots = data.get("slots", {})
+		if slots is Dictionary:
+			for k in slots:
+				if STARTERS.has(StringName(str(k))) and slots[k] is Dictionary:
+					_slots[str(k)] = slots[k]
+		var cur := StringName(str(data.get("current", "")))
+		if STARTERS.has(cur):
+			starter = cur
+	if starter != &"":
+		_unpark(starter)
+
+
+## Version 1 shared progress, bag and stash between crabs. All of it goes to the
+## crab you were playing; the others keep what they were wearing.
+func _migrate_v1(data: Dictionary) -> void:
+	var cur := StringName(str(data.get("starter", "")))
+	var loadouts = data.get("loadouts", {})
+	if loadouts is Dictionary:
+		for k in loadouts:
+			if STARTERS.has(StringName(str(k))):
+				_slots[str(k)] = {"loadout": loadouts[k]}
+	if STARTERS.has(cur):
+		starter = cur
+		var slot: Dictionary = _slots.get(String(cur), {})
+		slot["cleared"] = data.get("cleared", [])
+		slot["bag"] = data.get("bag", [])
+		slot["stash"] = data.get("stash", [])
+		_slots[String(cur)] = slot
 
 
 ## Tests: use a throwaway save file and start fresh.

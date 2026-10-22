@@ -42,6 +42,11 @@ var _special_dir := Vector3.FORWARD
 
 
 func _ready() -> void:
+	# Early bosses start their specials later too.
+	_rush_t *= boss.boss_pace
+	_bristle_t *= boss.boss_pace
+	_summon_t *= boss.boss_pace
+	_slam_t *= boss.boss_pace
 	boss.health.damaged.connect(_on_damaged)
 	boss.died.connect(_on_died)
 
@@ -115,22 +120,22 @@ func _physics_process(delta: float) -> void:
 	_summon_t -= delta
 	_slam_t -= delta
 	if tactic == &"rush" and _rush_t <= 0.0 and dist > 5.0:
-		_rush_t = 4.5
-		_begin(&"rush", 0.6, dir)
-		FX.warn_lane(boss.get_parent(), boss.global_position, dir, 16.0 * 0.45, boss.radius() * 2.0, 0.6)
+		_rush_t = 4.5 * boss.boss_pace
+		_begin(&"rush", 0.6 * boss.windup_mult, dir)
+		FX.warn_lane(boss.get_parent(), boss.global_position, dir, 16.0 * 0.45, boss.radius() * 2.0, 0.6 * boss.windup_mult)
 	elif tactic == &"bristle" and _bristle_t <= 0.0 and dist < 3.5 * maxf(boss.size, 1.0):
-		_bristle_t = 5.0
-		_begin(&"bristle", 0.6, dir)
-		FX.warn_circle(boss.get_parent(), boss.global_position, 3.2 * maxf(boss.size * 0.6, 1.0), 0.6)
+		_bristle_t = 5.0 * boss.boss_pace
+		_begin(&"bristle", 0.6 * boss.windup_mult, dir)
+		FX.warn_circle(boss.get_parent(), boss.global_position, 3.2 * maxf(boss.size * 0.6, 1.0), 0.6 * boss.windup_mult)
 	elif has_trait(&"slam") and _slam_t <= 0.0 and dist < 6.0 * maxf(boss.size * 0.6, 1.0):
-		_slam_t = 7.0
-		_begin(&"slam", 0.9, dir)
-		FX.warn_circle(boss.get_parent(), boss.global_position, 4.5 * maxf(boss.size * 0.6, 1.0), 0.9, Color(1, 0.5, 0.15))
+		_slam_t = 7.0 * boss.boss_pace
+		_begin(&"slam", 0.9 * boss.windup_mult, dir)
+		FX.warn_circle(boss.get_parent(), boss.global_position, 4.5 * maxf(boss.size * 0.6, 1.0), 0.9 * boss.windup_mult, Color(1, 0.5, 0.15))
 	elif has_trait(&"summoner") and _summon_t <= 0.0:
-		_summon_t = 11.0
-		_begin(&"summon", 0.8, dir)
+		_summon_t = 11.0 * boss.boss_pace
+		_begin(&"summon", 0.8 * boss.windup_mult, dir)
 		for i in 2:
-			FX.warn_circle(boss.get_parent(), boss.global_position + _summon_offset(i), 1.0, 0.8, Color(0.6, 0.9, 1.0))
+			FX.warn_circle(boss.get_parent(), boss.global_position + _summon_offset(i), 1.0, 0.8 * boss.windup_mult, Color(0.6, 0.9, 1.0))
 
 
 func _begin(kind: StringName, windup: float, dir: Vector3) -> void:

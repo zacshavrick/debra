@@ -12,13 +12,13 @@ Built with **Godot 4.7.2**. It runs as a **Windows exe** and as a **mobile web a
 ![a mutated Debra](docs/screenshots/mutant.png)
 
 ## What's in it
-- **5 starter crustaceans:** Debra the Lobster, Saul the Crab, Louise the Shrimp, Marjorie the Hermit Crab and Gary the Spider Crab. Each crab keeps its own mutations.
+- **5 starter crustaceans:** Debra the Lobster, Saul the Crab, Louise the Shrimp, Marjorie the Hermit Crab and Gary the Spider Crab. **Each crab is its own saved game**: continue one, or start it over.
 - **An endless dive.** Five hand-made depths, then generated ones forever. Every depth has a biome, an arena layout, a featured creature, an objective (cull, waves or hunt) and modifiers like Swarm, Riptide or Dark water. The same depth is always the same level.
 - **Chimera bosses** that wear parts stolen from other creatures, have traits (summoner, enrage, slam, shell, splitter), and **adapt to how you fight**: snipe them and they rush you, brawl them and they grow thorns. Beat one and a portal opens home.
 - **36 kinds of sea creature**: crabs, lobsters, shrimp, isopods, eels, sharks, swordfish, jellyfish, urchins, octopuses, cuttlefish, rays, clams and more.
 - **114 body parts in 6 slots.** Claws are your attacks (8 styles). Shells give a spacebar ability (dash, deflector, cloak, spike burst, roll, mend, quake, or the rare Shark Dash). Tails act on their own: they dodge, guard, mend, stab, zap, lure or spray spines. Deeper parts are stronger.
 - **Six loot tiers** up to Legendary and the very rare **Gold**, which always carries a unique mod (Echo, Detonate, Stormcaller, Second wind…). **Set bonuses** for full Epic sets, and the best gear in the sea is the full **Gold Debra set**.
-- **A bag and a stash at home**, with an inventory screen to compare, equip and store parts. Loot on the floor vanishes after 20 seconds, so grab it.
+- **A bag and a stash at home** (per crab), with an inventory screen to compare, equip and store parts. Loot on the floor vanishes after 20 seconds, so grab it.
 - **A branching map**: routes fork and rejoin as you dive.
 
 ## Play

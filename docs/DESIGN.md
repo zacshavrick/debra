@@ -27,7 +27,7 @@ Pick a crab → pick a depth on the map → do the objective → beat the boss �
 | **Gary the Spider Crab** | Default | Long lash arms, very long legs | Tucked |
 
 - All starters share one fixed body (6 sockets), so any crustacean part fits any starter (Decided: fixed sockets).
-- Mutations are saved per crab. The select screen shows each crab as they look now, and "Undo mutations" resets one crab (Default).
+- **Every crab is its own saved game** (Decided): its gear, bag, stash and map progress all belong to that crab. On the select screen, **CONTINUE** picks a crab's save back up and **NEW GAME** starts that crab over from the beginning (press twice to confirm if it has a save). The select screen shows each crab as it looks in its save, plus its deepest depth.
 
 ## The endless dive (Decided: endless, part levels)
 | Rule | Status |
@@ -66,6 +66,7 @@ Pick a crab → pick a depth on the map → do the objective → beat the boss �
 
 ## Bosses
 - **Chimera bosses (Decided).** A generated boss is a giant creature wearing 2–4 parts stolen from other creatures at that depth. It gets a generated name ("The Barnacled Hermit Crab Wearer of Others") and always drops two parts, one of them stolen.
+- **Early bosses are paced slower** (Decided: they were too hard): depth 1 bosses wait 2× as long between attacks, depth 2 waits 1.7×, depth 3 waits 1.4×, and their windups are a little longer too (by the square root). Damage is unchanged. From depth 4 on, bosses fight at full speed.
 - **Adaptive tactics (Decided: bosses change tactics based on range vs close).** Every boss watches where you hit it from.
   - If you **snipe from range**, it switches to **Rush**: it charges across the arena at you (a red lane warns you), then answers with a volley of shots.
   - If you **brawl up close**, it switches to **Bristle**: thorns (hitting it hurts you), a point-blank slam (a red circle warns you), then it backs off.
@@ -172,8 +173,8 @@ Luck (depth, bosses, champions, Treasure, Lucky) boosts tiers up to Epic fully, 
 Higher rarity shortens cooldowns; Timeless cuts them by 40%.
 
 ### Inventory and storage (Decided)
-- **Bag:** 30 slots, shared by every crab. Q / Y / TAKE puts loot in the bag. A part you swap out goes into the bag (or to the floor if the bag is full).
-- **Stash:** 90 slots at home. Reach it at the Coke can in any level (open the inventory there), or with STASH / BAG on the map.
+- **Bag:** 30 slots, per crab. Q / Y / TAKE puts loot in the bag. A part you swap out goes into the bag (or to the floor if the bag is full).
+- **Stash:** 90 slots at home, per crab. Reach it at the Coke can in any level (open the inventory there), or with STASH / BAG on the map.
 - **Inventory screen** (I / Tab / Back / INV): what you're wearing, set progress, active mods, bag and stash. It compares stats against what you wear, and lets you equip (L/R for claws), store, or drop/scrap. The game pauses while it's open.
 - **Loot on the floor vanishes after 20 seconds,** blinking for the last 5 (Decided). It floats in a glowing bubble in its rarity colour, so it never looks like a creature (Decided fix: the jelly cap looked like a jellyfish).
 

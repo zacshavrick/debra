@@ -18,7 +18,7 @@ map.tscn (main) ──DIVE──▶ level.tscn ──MAP / Esc / Start──▶ 
    │  └─ no crab picked yet ──▶ select.tscn ──PLAY──▶ map.tscn
    └─ HOME / Change crab ─────▶ select.tscn
 ```
-The `GameState` autoload owns the save file (`user://debra_save.json`: chosen crab, per-crab loadouts, cleared levels) and the scene changes (`go_to_map`, `go_to_select`, `play_level`).
+The `GameState` autoload owns the save file and the scene changes (`go_to_map`, `go_to_select`, `play_level`). The save (`user://debra_save.json`, version 2) holds **one slot per crab**: `{"current": id, "slots": {id: {loadout, cleared, bag, stash}}}`. The playing crab's slot lives in `_loadout`, `_cleared`, `bag` and `stash`, and the others wait in `_slots`. `choose_starter()` = continue (switch slots), `new_game()` = wipe that slot. Version-1 saves (shared progress) migrate into the crab that was being played.
 
 ## Repo layout
 ```
@@ -142,7 +142,8 @@ Combat will be rebuilt 3–4 times. Everything combat-specific lives in `scripts
 | 2026-10-19 | Bosses adapt to range vs close via BossBrain | Zac asked for bosses that change tactics depending on how you play them |
 | 2026-10-19 | Boss death opens a Portal instead of a prompt | Zac: no prompt, leave whenever |
 | 2026-10-19 | Mods reuse one hook set for parts and set perks | One implementation per effect; sets are just bundles of mods |
-| 2026-10-19 | Bag shared by all crabs; stash at home | Switching crabs never strands loot; home stays meaningful |
+| 2026-10-19 | ~~Bag shared by all crabs~~ → 2026-10-20: each crab is its own save (gear, bag, stash, progress) | Zac: each crab is a separate game; NEW GAME restarts one |
+| 2026-10-20 | `boss_pace` slows depth 1-3 bosses (x2 / x1.7 / x1.4 cooldowns) | Zac: early bosses killed new players too often |
 | 2026-10-19 | Branching chart from a deterministic graph, not stored | Endless and shareable like the depths themselves |
 
 ## Milestone 4 systems

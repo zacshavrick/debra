@@ -256,6 +256,8 @@ func spawn_enemy(creature: CreatureData, pos: Vector3, track := true, opts := {}
 	elif level.has_mod(&"dark"):
 		e.glow_overlay = Creature.glow_material(Color(0.4, 0.9, 1.0))
 	if is_boss_spawn:
+		e.boss_pace = early_boss_pace(level.depth)
+		e.windup_mult = sqrt(e.boss_pace)
 		if level.boss_name != "":
 			e.display_name = level.boss_name
 		for p in level.boss_parts:
@@ -321,6 +323,19 @@ func _add_marker(e: Creature) -> void:
 	l.position.y = 1.6 * e.size + 0.6
 	e.add_child(l)
 	l.create_tween().set_loops().tween_property(l, "position:y", l.position.y + 0.25, 0.5).set_trans(Tween.TRANS_SINE)
+
+
+## Bosses in the first depths leave more time between attacks (and wind up
+## a little longer), so new players can learn them: x2 at depth 1, x1.7 at 2, x1.4 at 3.
+static func early_boss_pace(depth: int) -> float:
+	match depth:
+		1:
+			return 2.0
+		2:
+			return 1.7
+		3:
+			return 1.4
+	return 1.0
 
 
 func spawn_boss() -> Creature:

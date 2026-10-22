@@ -16,6 +16,7 @@ var player: PlayerCrab
 
 func _ready() -> void:
 	GameState.use_save_file(TEST_SAVE)
+	GameState.choose_starter(&"debra")
 	_test_data()
 	_test_part_levels()
 	_test_generator()
@@ -36,6 +37,7 @@ func _ready() -> void:
 	await _test_level_flow_and_portal()
 	await _test_death_and_respawn()
 	_test_save_roundtrip()
+	await _test_early_boss_pacing()
 	_test_rarity_roll()
 	level.queue_free()
 	await _frames(3)
@@ -400,20 +402,75 @@ func _test_death_and_respawn() -> void:
 	_check(is_equal_approx(player.health.hp, player.health.max_hp), "respawn with full HP")
 
 
+## Every crab is its own saved game; NEW GAME starts one over; old saves migrate.
 func _test_save_roundtrip() -> void:
+	_check(GameState.starter == &"debra" and GameState.is_cleared(&"shallows"), "Debra's save has her progress")
+	var debra_bag := GameState.bag.size()
 	GameState.choose_starter(&"louise")
+	_check(not GameState.is_cleared(&"shallows") and GameState.bag.is_empty(), "Louise starts with her own empty save")
+	_check(GameState.has_save(&"debra") and int(GameState.slot_summary(&"debra").cleared) >= 1, "Debra's save is kept while you play Louise")
 	var eq := Equipment.new()
 	for s in Equipment.SOCKET_COUNT:
 		eq.equip(s, GameState.loadout_for(&"louise")[s])
 	eq.equip(Equipment.Socket.HEAD, PartInstance.new(PartCatalog.by_id(&"angler_lure"), Rarity.Tier.RARE, 7))
 	GameState.store_loadout(&"louise", eq)
 	eq.free()
+	GameState.mark_cleared(&"shallows")
+	GameState.add_to_bag(PartInstance.new(PartCatalog.by_id(&"shore_eyes")))
 	GameState.load_game()
-	_check(GameState.starter == &"louise", "starter survives a reload")
+	_check(GameState.starter == &"louise", "the crab you were playing survives a reload")
 	var head := GameState.loadout_for(&"louise")[Equipment.Socket.HEAD]
 	_check(head.data.id == &"angler_lure" and head.rarity == Rarity.Tier.RARE and head.level == 7, "mutations survive a reload")
-	_check(GameState.is_cleared(&"shallows"), "clears survive a reload")
-	_check(GameState.loadout_for(&"saul")[Equipment.Socket.SHELL].data.id == &"saul_shell", "other crabs keep their default parts")
+	_check(GameState.bag.size() == 1, "Louise's bag survives a reload")
+	GameState.choose_starter(&"debra")
+	_check(GameState.is_cleared(&"shallows") and GameState.bag.size() == debra_bag, "CONTINUE picks Debra's save back up")
+	_check(GameState.loadout_for(&"debra")[Equipment.Socket.SHELL].data.id == &"hermit_shell", "Debra still wears what she wore")
+	# New game wipes just that crab.
+	GameState.choose_starter(&"saul")
+	GameState.mark_cleared(&"shallows")
+	GameState.add_to_bag(PartInstance.new(PartCatalog.by_id(&"shore_eyes")))
+	GameState.new_game(&"saul")
+	_check(GameState.starter == &"saul" and not GameState.is_cleared(&"shallows") and GameState.bag.is_empty(), "NEW GAME starts Saul over from the beginning")
+	_check(GameState.loadout_for(&"saul")[Equipment.Socket.SHELL].data.id == &"saul_shell", "...in his starting gear")
+	_check(int(GameState.slot_summary(&"debra").cleared) >= 1 and GameState.loadout_for(&"louise")[Equipment.Socket.HEAD].data.id == &"angler_lure", "...and nobody else's save changes")
+	# A version-1 save (shared progress) migrates into the crab you were playing.
+	var old_path := GameState.save_path
+	GameState.save_path = "user://smoke_v1_save.json"
+	var f := FileAccess.open(GameState.save_path, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"version": 1, "starter": "gary", "cleared": ["shallows", "kelp"],
+		"loadouts": {"gary": [], "saul": []}, "bag": [{"id": "shore_eyes", "rarity": 2}], "stash": []}))
+	f.close()
+	GameState.load_game()
+	_check(GameState.starter == &"gary" and GameState.is_cleared(&"kelp") and GameState.bag.size() == 1, "old saves move into the crab you were playing")
+	_check(GameState.has_save(&"saul") and int(GameState.slot_summary(&"saul").cleared) == 0, "other crabs from an old save start without progress")
+	DirAccess.remove_absolute(GameState.save_path)
+	GameState.save_path = old_path
+	GameState.load_game()
+	GameState.choose_starter(&"louise")
+
+
+## The first three depths' bosses leave more time between attacks.
+func _test_early_boss_pacing() -> void:
+	var paces: Array[float] = []
+	for d in [1, 2, 3, 4]:
+		paces.append(Level.early_boss_pace(d))
+	_check(paces[0] > paces[1] and paces[1] > paces[2] and paces[2] > paces[3] and is_equal_approx(paces[3], 1.0), "boss pacing eases off over depths 1-3 %s" % str(paces))
+	var lv := _open_level(GameState.level(&"shallows"), &"debra")
+	var b := lv.spawn_boss()
+	await _frames(2)
+	_check(is_equal_approx(b.boss_pace, 2.0) and b.windup_mult > 1.3, "depth 1 boss is paced slower")
+	_check(b.cooldown_mult >= 2.4, "depth 1 boss claws recharge twice as slowly (%.2f)" % b.cooldown_mult)
+	var brain := lv.boss_brain
+	var shallow_cd := b.cooldown_mult
+	_check(brain._rush_t >= 5.9 and brain._slam_t >= 11.9, "its special moves start later too")
+	lv.queue_free()
+	await _frames(3)
+	lv = _open_level(GameState.level(&"abyss"), &"debra")
+	var deep := lv.spawn_boss()
+	await _frames(2)
+	_check(is_equal_approx(deep.boss_pace, 1.0) and deep.cooldown_mult < shallow_cd, "deep bosses keep full speed")
+	lv.queue_free()
+	await _frames(3)
 
 
 func _test_rarity_roll() -> void:
@@ -698,7 +755,7 @@ func _test_shell_abilities() -> void:
 				var before := p.health.hp
 				p.receive_hit(20.0, Vector3(0, 0, -3), 0.0, dummy)
 				_check(before - p.health.hp < 20.0 * 0.4, "deflector blocks most damage")
-				var shot := BubbleShot.fire(dummy, Vector3(0, 0.4, -1.2), Vector3.BACK, 5.0, 8.0, 5.0, Color.WHITE)
+				var shot := BubbleShot.fire(dummy, p.global_position + Vector3(0, 0.4, -1.4), Vector3.BACK, 5.0, 8.0, 5.0, Color.WHITE)
 				await _seconds(0.2)
 				_check(not is_instance_valid(shot) or shot.team == p.team, "deflector bounces shots back")
 			&"cloak":
