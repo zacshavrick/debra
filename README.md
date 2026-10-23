@@ -35,7 +35,8 @@ Built with **Godot 4.7.2**. It runs as a **Windows exe** and as a **mobile web a
 | Take to bag | Q | Y | TAKE |
 | Inventory | I or Tab | Back | INV |
 | Equip part (left claw) | E / F | X | EQUIP / EQUIP L |
-| Equip to right claw | R | B | EQUIP R |
+| Equip to right claw | R | D-pad right | EQUIP R |
+| Own movement move (per crab) | Shift | B | MOVE |
 | Back to map | Esc, or the portal | Start | MAP |
 | Dev: random part / spawn / heal / boss / skip | F1 / F2 / F3 / F4 / F5 | | SKIP |
 

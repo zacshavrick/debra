@@ -12,6 +12,7 @@ script = ExtResource("1")
 id = &"louise"
 display_name = "Louise the Shrimp"
 playable = true
+move_ability = &"shimmy"
 blurb = "Fast, fragile, all snippers. Hit and run."
 base_hp = 40.0
 head = ExtResource("3")

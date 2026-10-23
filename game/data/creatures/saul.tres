@@ -12,6 +12,7 @@ script = ExtResource("1")
 id = &"saul"
 display_name = "Saul the Crab"
 playable = true
+move_ability = &"scuttle"
 blurb = "Two honest pincers. Does what it says on the shell."
 base_hp = 50.0
 head = ExtResource("2")

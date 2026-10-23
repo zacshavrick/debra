@@ -38,6 +38,8 @@ func _ready() -> void:
 	await _test_death_and_respawn()
 	_test_save_roundtrip()
 	await _test_early_boss_pacing()
+	await _test_move_abilities()
+	await _test_props_and_title()
 	_test_rarity_roll()
 	level.queue_free()
 	await _frames(3)
@@ -890,6 +892,118 @@ func _test_branching_and_dev_skip() -> void:
 	_check(lv.is_cleared and is_instance_valid(lv.portal), "dev skip clears the level and opens the portal")
 	lv.queue_free()
 	await _frames(3)
+
+
+## Every starter's own movement move: charges, cooldowns, patterns.
+func _test_move_abilities() -> void:
+	var expect := {&"gary": [&"leap", 1, 3.0], &"saul": [&"scuttle", 3, 3.0], &"debra": [&"lunge", 2, 3.0],
+		&"marjorie": [&"arc", 2, 3.0], &"louise": [&"shimmy", 4, 4.0]}
+	for id in expect:
+		var e: Array = expect[id]
+		var c := GameState.starter_data(id)
+		_check(c.move_ability == e[0], "%s's move is %s (%s)" % [id, e[0], c.move_ability])
+		var m: Dictionary = MoveAbility.MOVES[e[0]]
+		_check(int(m.charges) == int(e[1]) and is_equal_approx(float(m.cooldown), float(e[2])), "%s: %d charges, %.0f s" % [id, e[1], e[2]])
+	# Saul scuttles Right, Right, Left, Left.
+	var lv := _open_level(GameState.level(&"shallows"), &"saul")
+	var p := lv.player
+	var mv := p.move_ability
+	var sides: Array[float] = []
+	for i in 4:
+		p.global_position = Vector3(0, 0, 0)
+		p.face_now(Vector3.FORWARD)
+		mv.charges = mv.max_charges()
+		var x0 := p.global_position.x
+		_check(mv.try_use(Vector3.ZERO), "scuttle %d fires" % i)
+		await _seconds(0.35)
+		sides.append(signf(p.global_position.x - x0))
+	_check(sides == [1.0, 1.0, -1.0, -1.0], "Saul scuttles R, R, L, L (%s)" % str(sides))
+	# Charges run out and refill one per cooldown.
+	mv.charges = 3
+	mv._recharge = 0.0
+	for i in 3:
+		mv.try_use(Vector3.ZERO)
+		await _seconds(0.3)
+	_check(mv.charges == 0 and not mv.try_use(Vector3.ZERO), "out of charges after 3 scuttles")
+	await _seconds(3.0)
+	_check(mv.charges == 1, "one charge back after 3 seconds (%d)" % mv.charges)
+	lv.queue_free()
+	await _frames(3)
+	# Louise: Forward, Forward, Back, Forward.
+	lv = _open_level(GameState.level(&"shallows"), &"louise")
+	p = lv.player
+	mv = p.move_ability
+	var steps: Array[float] = []
+	for i in 4:
+		p.global_position = Vector3(0, 0, 0)
+		p.face_now(Vector3.FORWARD)
+		var z0 := p.global_position.z
+		mv.try_use(Vector3.ZERO)
+		await _seconds(0.3)
+		steps.append(-signf(p.global_position.z - z0))   # forward is -Z
+	_check(steps == [1.0, 1.0, -1.0, 1.0], "Louise shimmies F, F, B, F (%s)" % str(steps))
+	lv.queue_free()
+	await _frames(3)
+	# Debra: a long forward lunge.
+	lv = _open_level(GameState.level(&"shallows"), &"debra")
+	p = lv.player
+	p.global_position = Vector3(0, 0, 0)
+	p.face_now(Vector3.RIGHT)
+	p.move_ability.try_use(Vector3.ZERO)
+	await _seconds(0.5)
+	_check(p.global_position.x > 5.0, "Debra lunges far forward (%.1f)" % p.global_position.x)
+	lv.queue_free()
+	await _frames(3)
+	# Marjorie: an arc that bends her path.
+	lv = _open_level(GameState.level(&"shallows"), &"marjorie")
+	p = lv.player
+	p.global_position = Vector3(0, 0, 0)
+	p.face_now(Vector3.RIGHT)
+	p.move_ability.try_use(Vector3.ZERO)
+	await _seconds(0.6)
+	_check(absf(p.global_position.z) > 1.0 and p.global_position.x > 1.5, "Marjorie's dash curves (%s)" % str(p.global_position))
+	_check(p.facing.angle_to(Vector3.RIGHT) > 1.0, "...and turns her around the arc")
+	lv.queue_free()
+	await _frames(3)
+	# Gary: a long jump over a creature, untouchable in the air.
+	lv = _open_level(GameState.level(&"shallows"), &"gary")
+	p = lv.player
+	p.global_position = Vector3(0, 0, 0)
+	p.face_now(Vector3.RIGHT)
+	var wall := lv.spawn_enemy(PartCatalog.creature(&"giant_isopod"), Vector3(2.5, 0, 0), false)
+	wall.lock_ai(30.0)
+	await _frames(2)
+	p.move_ability.try_use(Vector3.ZERO)
+	await _frames(5)
+	_check(p.airborne, "Gary is in the air")
+	var hp := p.health.hp
+	p.receive_hit(50.0, p.global_position + Vector3.LEFT, 0.0, null)
+	_check(p.health.hp == hp, "nothing hits Gary mid-jump")
+	await _seconds(0.7)
+	_check(not p.airborne and p.global_position.x > 4.0, "Gary jumped over the isopod (x %.1f)" % p.global_position.x)
+	lv.queue_free()
+	await _frames(3)
+
+
+## Props build, and the title screen has creatures scuttling past.
+func _test_props_and_title() -> void:
+	var d := RandomNumberGenerator.new()
+	d.seed = 11
+	for k in Props.KINDS:
+		var prop := Props.build(k, d)
+		_check(prop != null and prop.find_children("*", "MeshInstance3D", true, false).size() > 0, "prop %s builds" % k)
+		if prop:
+			prop.free()
+	var sel: CrabSelect = load("res://scenes/select.tscn").instantiate()
+	add_child(sel)
+	await _frames(5)
+	_check(sel._parade.size() >= 3, "creatures parade past the title screen (%d)" % sel._parade.size())
+	var first: Node3D = sel._parade[0].node
+	var x0 := first.position.x
+	await _seconds(0.5)
+	_check(is_instance_valid(first) and absf(first.position.x - x0) > 0.2, "...and they move")
+	sel.queue_free()
+	await _frames(2)
 
 
 # --- Helpers -------------------------------------------------------------------------

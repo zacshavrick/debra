@@ -17,6 +17,8 @@ signal ability_pressed
 signal take_pressed
 ## Open the inventory (I or Tab / Back / INV).
 signal inventory_pressed
+## This crab's movement move (Shift / B / MOVE).
+signal move_pressed
 
 enum Scheme { KEYBOARD_MOUSE, GAMEPAD, TOUCH }
 enum Claw { LEFT, RIGHT }
@@ -102,7 +104,7 @@ func hint(alt: bool) -> String:
 		Scheme.KEYBOARD_MOUSE:
 			return "R" if alt else "E"
 		Scheme.GAMEPAD:
-			return "B" if alt else "X"
+			return "D-pad right" if alt else "X"
 	return ""
 
 
@@ -143,6 +145,8 @@ func _input(event: InputEvent) -> void:
 		ability_pressed.emit()
 	if event.is_action_pressed("take"):
 		take_pressed.emit()
+	if event.is_action_pressed("move_ability"):
+		move_pressed.emit()
 	if event.is_action_pressed("inventory"):
 		inventory_pressed.emit()
 	if event.is_action_pressed("menu"):
@@ -187,7 +191,8 @@ func _register_default_bindings() -> void:
 	_bind("claw_left", [KEY_J], [JOY_BUTTON_LEFT_SHOULDER], [[JOY_AXIS_TRIGGER_LEFT, 1.0]])
 	_bind("claw_right", [KEY_K], [JOY_BUTTON_RIGHT_SHOULDER], [[JOY_AXIS_TRIGGER_RIGHT, 1.0]])
 	_bind("interact", [KEY_E, KEY_F], [JOY_BUTTON_X], [])
-	_bind("interact_alt", [KEY_R], [JOY_BUTTON_B], [])
+	_bind("interact_alt", [KEY_R], [JOY_BUTTON_DPAD_RIGHT], [])
+	_bind("move_ability", [KEY_SHIFT], [JOY_BUTTON_B], [])
 	_bind("ability", [KEY_SPACE], [JOY_BUTTON_A], [])
 	_bind("take", [KEY_Q], [JOY_BUTTON_Y], [])
 	_bind("inventory", [KEY_I, KEY_TAB], [JOY_BUTTON_BACK], [])
@@ -236,3 +241,8 @@ func take_hint() -> String:
 		Scheme.GAMEPAD:
 			return "Y"
 	return ""
+
+
+func touch_move_ability() -> void:
+	_set_scheme(Scheme.TOUCH)
+	move_pressed.emit()

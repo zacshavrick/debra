@@ -18,12 +18,15 @@ static func build(root: Node3D, level: LevelData, keep_clear: Array[Vector3]) ->
 	match level.decor:
 		&"kelp":
 			_kelp(root, level, d, 70 if not low else 35, 0.0, keep_clear, Color(0.18, 0.5, 0.22), Color(0.45, 0.55, 0.15), 3.0, 7.5)
+			_scatter(root, level, d, [&"seagrass", &"seagrass", &"anemone"], 20, keep_clear)
 			_rocks(root, level, d, 6, keep_clear)
 		&"reef":
-			_coral(root, level, d, 45 if not low else 25, keep_clear)
+			_coral(root, level, d, 40 if not low else 22, keep_clear)
+			_scatter(root, level, d, [&"seagrass", &"anemone"], 16, keep_clear)
 			_kelp(root, level, d, 12, 0.0, keep_clear, Color(0.3, 0.6, 0.35), Color(0.5, 0.65, 0.3), 1.0, 2.5)
 		&"wreck":
 			_wreck(root, level, d, keep_clear)
+			_scatter(root, level, d, [&"tube_sponge", &"anemone", &"sea_fan"], 12, keep_clear)
 			_rocks(root, level, d, 7, keep_clear)
 			_kelp(root, level, d, 14, 0.0, keep_clear, Color(0.15, 0.3, 0.2), Color(0.25, 0.35, 0.18), 2.0, 5.0)
 		&"abyss":
@@ -34,6 +37,7 @@ static func build(root: Node3D, level: LevelData, keep_clear: Array[Vector3]) ->
 			_rocks(root, level, d, 6, keep_clear, Color(0.18, 0.14, 0.13))
 		&"sargassum":
 			_sargassum(root, level, d, 24 if not low else 12, keep_clear)
+			_scatter(root, level, d, [&"seagrass"], 18, keep_clear)
 			_kelp(root, level, d, 18, 0.0, keep_clear, Color(0.55, 0.45, 0.15), Color(0.65, 0.55, 0.2), 1.0, 3.0)
 		&"ice":
 			_crystals(root, level, d, 26 if not low else 14, keep_clear)
@@ -46,6 +50,7 @@ static func build(root: Node3D, level: LevelData, keep_clear: Array[Vector3]) ->
 			_shells(root, level, d, 12, keep_clear)
 		_:  # shallows
 			_shells(root, level, d, 30 if not low else 15, keep_clear)
+			_scatter(root, level, d, [&"seagrass", &"seagrass", &"anemone", &"staghorn"], 18, keep_clear)
 			_kelp(root, level, d, 25 if not low else 12, 0.0, keep_clear, Color(0.35, 0.6, 0.3), Color(0.55, 0.65, 0.3), 0.8, 1.8)
 			_rocks(root, level, d, 4, keep_clear)
 	_layout(root, level, d, keep_clear)
@@ -359,33 +364,33 @@ static func _shells(root: Node3D, level: LevelData, d: RandomNumberGenerator, co
 				PartVisual._ellipsoid(root, p + Vector3(0.05 * j, 0.08 + j * 0.06, 0), Vector3.ONE * (0.2 - j * 0.05), PartVisual.mat(c.darkened(0.1 * j)))
 
 
+## A reef of game-ready props (Props): branching and staghorn corals, sea fans,
+## brain and table corals (solid), tube sponges and anemones.
 static func _coral(root: Node3D, level: LevelData, d: RandomNumberGenerator, count: int, keep_clear: Array[Vector3]) -> void:
-	var cols := [Color(0.95, 0.4, 0.5), Color(0.98, 0.6, 0.25), Color(0.65, 0.4, 0.9), Color(0.3, 0.8, 0.75), Color(0.98, 0.85, 0.35)]
+	var kinds: Array[StringName] = [&"branch_coral", &"brain_coral", &"sea_fan", &"staghorn", &"table_coral", &"tube_sponge", &"anemone", &"branch_coral"]
 	for i in count:
-		var p := _free_spot(level, d, keep_clear, 3.5)
-		var c: Color = cols[d.randi() % cols.size()]
-		var m := PartVisual.mat(c)
-		match i % 3:
-			0:  # branching coral
-				var node := Node3D.new()
-				node.position = p
-				root.add_child(node)
-				for b in 5:
-					var dir := Vector3(d.randf_range(-0.5, 0.5), 1.0, d.randf_range(-0.5, 0.5)).normalized()
-					var tip := dir * d.randf_range(0.8, 1.6)
-					PartVisual._segment(node, Vector3.ZERO, tip, 0.09, 0.05, m)
-					PartVisual._segment(node, tip, tip + Vector3(d.randf_range(-0.4, 0.4), 0.5, d.randf_range(-0.4, 0.4)), 0.05, 0.03, m)
-			1:  # brain coral (solid)
-				var s := d.randf_range(0.7, 1.3)
-				PartVisual._ellipsoid(root, p + Vector3(0, s * 0.3, 0), Vector3(s * 1.4, s, s * 1.4), m)
-				for b in 6:
-					var a := TAU * b / 6.0
-					PartVisual._ellipsoid(root, p + Vector3(cos(a) * s * 0.35, s * 0.62, sin(a) * s * 0.35), Vector3.ONE * s * 0.3, PartVisual.mat(c.darkened(0.15)))
-				_solid(root, p, s * 0.65)
-			2:  # sea fan
-				var fan := PartVisual._ellipsoid(root, p + Vector3(0, 0.8, 0), Vector3(1.4, 1.5, 0.05), m)
-				fan.rotation.y = d.randf() * TAU
-				PartVisual._segment(root, p, p + Vector3(0, 0.3, 0), 0.06, 0.05, m)
+		_prop(root, level, d, kinds[i % kinds.size()], keep_clear, 3.5, d.randf_range(0.8, 1.3))
+
+
+## Places one prop at a free spot; hard props get collision.
+static func _prop(root: Node3D, level: LevelData, d: RandomNumberGenerator, kind: StringName, keep_clear: Array[Vector3], clearance: float, s: float) -> void:
+	var p := _free_spot(level, d, keep_clear, clearance)
+	var prop := Props.build(kind, d, s)
+	if prop == null:
+		return
+	prop.position = p
+	root.add_child(prop)
+	var r := Props.footprint(kind) * s
+	if r > 0.0:
+		_solid(root, p, r)
+
+
+## Scatter soft props (seagrass, anemones...) around a level.
+static func _scatter(root: Node3D, level: LevelData, d: RandomNumberGenerator, kinds: Array[StringName], count: int, keep_clear: Array[Vector3]) -> void:
+	if Platform.is_low():
+		count = count / 2
+	for i in count:
+		_prop(root, level, d, kinds[d.randi() % kinds.size()], keep_clear, 2.0, d.randf_range(0.7, 1.2))
 
 
 static func _wreck(root: Node3D, level: LevelData, d: RandomNumberGenerator, keep_clear: Array[Vector3]) -> void:

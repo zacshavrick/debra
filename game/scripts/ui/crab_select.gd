@@ -19,6 +19,13 @@ var _save_info: Label
 var _confirm_new := false
 var _t := 0.0
 
+## Creatures crossing the background: {node, dir, speed, crit}.
+const PARADE_Z := -3.6
+var _parade: Array[Dictionary] = []
+var _parade_t := 1.5
+var _parade_rng := RandomNumberGenerator.new()
+var _parade_pool: Array[CreatureData] = []
+
 
 func _ready() -> void:
 	var lvl := GameState.levels()[0]
@@ -26,8 +33,9 @@ func _ready() -> void:
 	LevelBuilder._floor(self, lvl)
 	var d := RandomNumberGenerator.new()
 	d.seed = 3
-	for i in 9:
-		LevelBuilder.rock(self, Vector3(-8 + i * 2.0, 0, -4.5 - d.randf() * 2.0), d.randf_range(0.8, 1.6), d, false, Color(0.35, 0.36, 0.38))
+	_build_backdrop(d)
+	for i in 4:   # a few creatures already on their way when the screen opens
+		_spawn_parader(_parade_rng.randf_range(-10.0, 10.0))
 	_cam = Camera3D.new()
 	_cam.fov = 40
 	add_child(_cam)
@@ -127,11 +135,11 @@ func _set_index(i: int) -> void:
 			continue
 		for st in PartData.STATS:
 			tot[st] = float(tot[st]) + p.stat(st)
-	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s\n%s\nSpace: %s" % [
+	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s\n%s\nSpace: %s\nShift (own move): %s" % [
 		roundi(tot[&"max_hp"]), roundi(tot[&"attack"]), roundi(tot[&"defense"]),
 		maxf(1.5, Crab.BASE_SPEED + float(tot[&"speed"]) * Crab.SPEED_PER_POINT),
 		CrabCombat.style_id(parts[Equipment.Socket.CLAW_L]), CrabCombat.style_id(parts[Equipment.Socket.CLAW_R]),
-		"Tail " + TailBrain.info(parts[Equipment.Socket.TAIL]), ShellAbility.info(parts[Equipment.Socket.SHELL])]
+		"Tail " + TailBrain.info(parts[Equipment.Socket.TAIL]), ShellAbility.info(parts[Equipment.Socket.SHELL]), MoveAbility.info(data.move_ability)]
 	var sum := GameState.slot_summary(id)
 	if sum.exists:
 		_save_info.text = "Saved game: deepest depth %d, %d levels cleared, %d parts stored" % [sum.deepest, sum.cleared, sum.parts]
@@ -174,6 +182,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	_update_parade(delta)
 	for i in crabs.size():
 		var c := crabs[i]
 		var target := 1.3 if i == index else 0.9
@@ -204,3 +213,91 @@ func _button(text: String, w: float) -> Button:
 	b.custom_minimum_size = Vector2(w, 54)
 	b.add_theme_font_size_override("font_size", 24)
 	return b
+
+
+# --- Backdrop and parade -------------------------------------------------------------
+
+func _build_backdrop(d: RandomNumberGenerator) -> void:
+	_parade_rng.randomize()
+	# Back: rocks and tall kelp.
+	for i in 7:
+		LevelBuilder.rock(self, Vector3(-11.0 + i * 3.6 + d.randf_range(-0.6, 0.6), 0, -10.0 - d.randf() * 1.5), d.randf_range(1.2, 2.0), d, false, Color(0.33, 0.36, 0.4))
+	var kelp: Shader = load(LevelBuilder.KELP_SHADER)
+	for i in 14:
+		var h := d.randf_range(3.0, 6.0)
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.3, h, 0.05)
+		bm.subdivide_height = 6
+		mi.mesh = bm
+		var m := ShaderMaterial.new()
+		m.shader = kelp
+		m.set_shader_parameter("tint", Color(0.2, 0.52, 0.25).lerp(Color(0.45, 0.6, 0.2), d.randf()))
+		m.set_shader_parameter("phase", d.randf() * TAU)
+		m.set_shader_parameter("height", h)
+		mi.material_override = m
+		mi.position = Vector3(-13.0 + i * 2.0 + d.randf_range(-0.5, 0.5), h * 0.5, -8.5 - d.randf() * 2.0)
+		mi.rotation.y = d.randf() * TAU
+		add_child(mi)
+	# Middle: a reef of corals, sponges and anemones behind the parade lane.
+	var kinds: Array[StringName] = [&"branch_coral", &"sea_fan", &"staghorn", &"brain_coral", &"table_coral", &"tube_sponge", &"anemone", &"branch_coral"]
+	for i in 18:
+		var p := Props.build(kinds[d.randi() % kinds.size()], d, d.randf_range(0.8, 1.3))
+		p.position = Vector3(-13.0 + i * 1.55 + d.randf_range(-0.4, 0.4), 0, -5.2 - d.randf() * 2.4)
+		add_child(p)
+	# Front corners: seagrass and anemones framing the crabs.
+	for i in 12:
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var p := Props.build(&"seagrass" if i % 3 else &"anemone", d, d.randf_range(0.8, 1.2))
+		p.position = Vector3(side * d.randf_range(5.6, 8.0), 0, d.randf_range(-1.5, 3.0))
+		add_child(p)
+	for c in PartCatalog.all_creatures():
+		if not c.playable and not c.boss and c.behaviour != &"turret" and c.size < 1.35:
+			_parade_pool.append(c)
+
+
+## Sends one creature across the background. Crabs scuttle sideways, the rest swim.
+func _spawn_parader(start_x := INF) -> void:
+	if _parade_pool.is_empty():
+		return
+	var c := _parade_pool[_parade_rng.randi() % _parade_pool.size()]
+	var dir := 1.0 if _parade_rng.randf() < 0.5 else -1.0
+	var node: Node3D
+	var y := 0.0
+	if c.is_crustacean():
+		var body := CrabBody.new()
+		add_child(body)
+		var lo := c.loadout()
+		for s in Equipment.SOCKET_COUNT:
+			body.show_part(s, PartInstance.new(lo[s]) if lo[s] else null)
+		body.walk_amount = 1.0
+		body.scale = Vector3.ONE * c.size * 0.8
+		body.rotation.y = PI - 0.3 * dir   # side-on to its path: a proper crab scuttle
+		node = body
+	else:
+		var v := CritterVisual.build(c.body_kind, c.color, c.accent)
+		add_child(v)
+		v.scale = Vector3.ONE * c.size * 0.75
+		v.rotation.y = -dir * PI * 0.5
+		y = c.hover * 0.75 + (0.5 if c.hover > 0.0 else 0.0)
+		node = v
+	var x0 := -14.0 * dir if start_x == INF else start_x
+	node.position = Vector3(x0, y, PARADE_Z - _parade_rng.randf() * 1.2)
+	var spd := _parade_rng.randf_range(1.2, 2.2) if c.is_crustacean() else clampf(c.speed * 0.5, 0.6, 2.4)
+	_parade.append({"node": node, "dir": dir, "speed": spd, "crit": not c.is_crustacean()})
+
+
+func _update_parade(delta: float) -> void:
+	_parade_t -= delta
+	if _parade_t <= 0.0:
+		_parade_t = _parade_rng.randf_range(1.8, 3.5)
+		_spawn_parader()
+	for i in range(_parade.size() - 1, -1, -1):
+		var p: Dictionary = _parade[i]
+		var n: Node3D = p.node
+		n.position.x += float(p.dir) * float(p.speed) * delta
+		if p.crit:
+			CritterVisual.animate(n, _t + i, 0.6, 0.0)
+		if absf(n.position.x) > 15.0:
+			n.queue_free()
+			_parade.remove_at(i)

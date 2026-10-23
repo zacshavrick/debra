@@ -13,6 +13,8 @@ enum Kind { CRUSTACEAN, CRITTER }
 @export var display_name := ""
 @export var kind: Kind = Kind.CRUSTACEAN
 @export var playable := false
+## Starters only: their own movement move (see MoveAbility): leap, scuttle, lunge, arc, shimmy.
+@export var move_ability: StringName = &""
 @export_multiline var blurb := ""
 @export var boss := false
 

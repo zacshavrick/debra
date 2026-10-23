@@ -13,6 +13,7 @@ script = ExtResource("1")
 id = &"debra"
 display_name = "Debra the Lobster"
 playable = true
+move_ability = &"lunge"
 blurb = "Crusher in one claw, cutter in the other. The headliner."
 base_hp = 55.0
 head = ExtResource("4")

@@ -40,5 +40,6 @@ To run Godot directly: `.tools/godot/Godot_v4.7.2-stable_win64_console.exe --pat
 - **Content is data.** A new creature is a `.tres` in `data/creatures/`. Give it a `min_depth` and the generator picks it up. A non-crustacean also needs a `body_kind` in `CritterVisual` (bodies animate generically via named nodes).
 - Milestone 4 is done: Legendary + Gold tiers with mods (`Mods`), set bonuses (`Sets`; Gold Debra = Headliner), shell spacebar abilities (`ShellAbility`), passive tails, bag + stash + `InventoryUI`, loot bubbles that vanish after 20 s, a branching map, and dev skip (`GameState.dev_mode`, F5, SKIP).
 - 2026-10-20: each crab is its own saved game (`GameState` slots: CONTINUE / NEW GAME on crab select), and depth 1-3 bosses are paced slower (`Level.early_boss_pace`, `Creature.boss_pace`).
-- Not verified yet: touch input on a real phone, and balance deep into the dive (past ~depth 30). The smoke test takes about 8 minutes.
+- 2026-10-23: each starter has its own movement move (`MoveAbility`, Shift / B / MOVE): Gary jump, Saul scuttle RRLL, Debra lunge, Marjorie arc, Louise shimmy FFBF. Fixed per crab for now (tail-linked movement is Open). Title screen backdrop + creature parade; swaying `Props` in levels.
+- Not verified yet: touch input on a real phone, and balance deep into the dive (past ~depth 30). The smoke test takes about 9 minutes.
 - Next candidates are in DESIGN.md → "Milestones".

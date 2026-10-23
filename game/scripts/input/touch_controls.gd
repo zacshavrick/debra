@@ -19,6 +19,10 @@ var _ability_finger := -1
 var _take_finger := -1
 ## 0..1 how charged the shell ability is (set by the HUD each frame).
 var ability_ready := 1.0
+## Movement move charges and refill progress (set by the level each frame).
+var move_charges := 0
+var move_ready := 1.0
+var _move_finger := -1
 
 
 func _ready() -> void:
@@ -46,11 +50,15 @@ func _claw_center(side: int) -> Vector2:
 ## Context buttons sit above the claw buttons: main (EQUIP / LEFT) over the
 ## left claw, alt (RIGHT) over the right claw.
 func _ctx_center(alt: bool) -> Vector2:
-	return _claw_center(1 if alt else 0) - Vector2(0, button_radius * 2.15)
+	return _claw_center(1 if alt else 0) - Vector2(0, button_radius * 3.9)
 
 
 func _ability_center() -> Vector2:
 	return _claw_center(0) - Vector2(button_radius * 2.1, -button_radius * 0.35)
+
+
+func _move_center() -> Vector2:
+	return _claw_center(1) - Vector2(0, button_radius * 2.05)
 
 
 func _take_center() -> Vector2:
@@ -88,6 +96,10 @@ func _on_press(finger: int, pos: Vector2) -> void:
 		_take_finger = finger
 		PlayerInput.touch_take()
 		return
+	if pos.distance_to(_move_center()) < button_radius * 0.8:
+		_move_finger = finger
+		PlayerInput.touch_move_ability()
+		return
 	if pos.distance_to(_ability_center()) < button_radius * 0.95:
 		_ability_finger = finger
 		PlayerInput.touch_ability()
@@ -109,6 +121,8 @@ func _on_press(finger: int, pos: Vector2) -> void:
 
 
 func _on_release(finger: int) -> void:
+	if finger == _move_finger:
+		_move_finger = -1
 	if finger == _ability_finger:
 		_ability_finger = -1
 	if finger == _take_finger:
@@ -143,6 +157,9 @@ func _draw() -> void:
 	_button(_claw_center(0), button_radius, Color(1.0, 0.55, 0.35), _claw_finger[0] != -1, "L CLAW", 22)
 	_button(_claw_center(1), button_radius, Color(1.0, 0.8, 0.35), _claw_finger[1] != -1, "R CLAW", 22)
 	_button(_ability_center(), button_radius * 0.85, Color(0.45, 0.8, 1.0), _ability_finger != -1, "ABILITY", 17)
+	_button(_move_center(), button_radius * 0.7, Color(0.7, 1.0, 0.85), _move_finger != -1, "MOVE x%d" % move_charges, 16)
+	if move_ready < 1.0:
+		draw_arc(_move_center(), button_radius * 0.7 + 4.0, -PI * 0.5, -PI * 0.5 + TAU * move_ready, 32, Color(1, 1, 1, 0.7), 4.0)
 	if ability_ready < 1.0:
 		draw_arc(_ability_center(), button_radius * 0.85 + 5.0, -PI * 0.5, -PI * 0.5 + TAU * ability_ready, 32, Color(1, 1, 1, 0.8), 5.0)
 	if PlayerInput.prompt != "":

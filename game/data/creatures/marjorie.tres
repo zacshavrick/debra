@@ -13,6 +13,7 @@ script = ExtResource("1")
 id = &"marjorie"
 display_name = "Marjorie the Hermit Crab"
 playable = true
+move_ability = &"arc"
 blurb = "Lives in a conch. Slow, tough, one big crusher."
 base_hp = 60.0
 head = ExtResource("3")

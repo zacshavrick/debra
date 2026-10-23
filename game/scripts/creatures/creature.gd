@@ -59,6 +59,8 @@ var guard_charges := 0
 var reflecting := false
 ## Cloaked: enemies can't see you.
 var cloaked := false
+## Mid-jump (Gary's leap): nothing on the ground can touch you.
+var airborne := false
 
 var health: Health
 
@@ -77,6 +79,8 @@ var _dash_dmg := 0.0
 var _dash_knock := 0.0
 var _dash_hit: Array[Creature] = []
 var _dash_pierce := false
+## Radians per second the current dash bends (arcing dashes).
+var _dash_turn := 0.0
 var _slow_left := 0.0
 var _slow_mult := 1.0
 var _last_hitter: Creature
@@ -133,6 +137,8 @@ func face_now(dir: Vector3) -> void:
 func receive_hit(raw: float, from: Vector3, knock: float, source: Creature) -> float:
 	if _dead:
 		return 0.0
+	if airborne:
+		return 0.0
 	if dodge_chance > 0.0 and randf() < dodge_chance:
 		FX.burst(get_parent(), global_position + Vector3(0, 0.5, 0), Color(0.8, 0.95, 1.0), 6, 2.0, 0.05)
 		return 0.0
@@ -176,6 +182,7 @@ func poison(dps: float, sec: float) -> void:
 ## pierce = keep going through everything (otherwise stop on the first hit).
 func start_dash(dir: Vector3, spd: float, sec: float, dmg := 0.0, knock := 0.0, pierce := true) -> void:
 	_dash_vel = Vector3(dir.x, 0, dir.z).normalized() * spd
+	_dash_turn = 0.0
 	_dash_left = sec
 	_dash_dmg = dmg
 	_dash_knock = knock
@@ -184,8 +191,16 @@ func start_dash(dir: Vector3, spd: float, sec: float, dmg := 0.0, knock := 0.0, 
 	face_now(dir)
 
 
+## Make the current dash bend: rate in radians per second (+ = counter-clockwise seen from above).
+func curve_dash(rate: float) -> void:
+	_dash_turn = rate
+
+
 func _dash_step(delta: float) -> void:
 	_dash_left -= delta
+	if _dash_turn != 0.0:
+		_dash_vel = _dash_vel.rotated(Vector3.UP, _dash_turn * delta)
+		face_now(_dash_vel)
 	velocity = Vector3(_dash_vel.x, 0, _dash_vel.z)
 	move_and_slide()
 	_set_walk(1.0)

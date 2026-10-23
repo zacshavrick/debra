@@ -26,6 +26,20 @@ Pick a crab → pick a depth on the map → do the objective → beat the boss �
 | **Marjorie the Hermit Crab** | Default | Conch shell, one crusher, slow tank | Tucked |
 | **Gary the Spider Crab** | Default | Long lash arms, very long legs | Tucked |
 
+### Movement moves (Shift / gamepad B / MOVE)
+Each starter has its own movement move (Decided: the moves). Charges refill one at a time, each taking its cooldown.
+
+| Crab | Move | Charges | Cooldown | What it does |
+|---|---|---|---|---|
+| Gary | Long Jump | 1 | 3 s | A long jump over creatures; untouchable in the air |
+| Saul | Scuttle | 3 | 3 s | Sideways dash, pattern **Right, Right, Left, Left**, repeating |
+| Debra | Lunge | 2 | 3 s | A long forward dash |
+| Marjorie | Arc Dash | 2 | 3 s | A medium dash that curves 90°, alternating right then left (Default) |
+| Louise | Shimmy | 4 | 4 s | Short dashes, pattern **Forward, Forward, Back, Forward** |
+
+- **The move belongs to the crab, not to a part** (Default, Claude's recommendation): gear swapping rebuilds everything else, so the move is what keeps each crab feeling like itself. **Open:** whether tails should add universal movement augments (an extra charge, faster recharge), or whether moves should move onto tails and become swappable. Today it's a CreatureData field (`move_ability`), so either change is cheap.
+- "Forward" means where you're steering, or where you face if you're not moving. Saul's scuttles and Louise's back-steps keep you facing forward.
+
 - All starters share one fixed body (6 sockets), so any crustacean part fits any starter (Decided: fixed sockets).
 - **Every crab is its own saved game** (Decided): its gear, bag, stash and map progress all belong to that crab. On the select screen, **CONTINUE** picks a crab's save back up and **NEW GAME** starts that crab over from the beginning (press twice to confirm if it has a save). The select screen shows each crab as it looks in its save, plus its deepest depth.
 
@@ -203,9 +217,14 @@ Damage = style damage × claw power (rarity × level) + ½ total ATK. DEF scales
 | Shell ability | Space | A | ABILITY |
 | Take to bag | Q | Y | TAKE |
 | Inventory | I or Tab | Back | INV |
-| Equip (left claw) / to right claw | E or F / R | X / B | EQUIP, EQUIP L / EQUIP R |
+| Equip (left claw) / to right claw | E or F / R | X / D-pad right | EQUIP, EQUIP L / EQUIP R |
+| Own movement move | Shift | B | MOVE |
 | Back to map | Esc (or the portal) | Start | MAP button |
 | Dev: random part / spawn / heal / boss / skip level | F1 / F2 / F3 / F4 / F5 | | SKIP |
+
+## Title screen and decor (Decided)
+- The crab select screen doubles as the title screen. Sea creatures scuttle and swim past behind the starters (crabs side-on, fish at their swimming height), in front of a backdrop of kelp, rocks, corals, sponges and anemones, with seagrass in the corners.
+- **Props are game-ready and used in levels:** branching and staghorn corals, sea fans, brain and table corals (solid), tube sponges (solid), anemones with glowing tips, and seagrass. They sway with the water. Shallows get seagrass, anemones and staghorn; Kelp gets seagrass and anemones; the Reef gets the full coral set; the Wreck gets sponges, anemones and fans; Sargassum gets seagrass.
 
 ## Home and progression
 | Rule | Status |
@@ -232,4 +251,6 @@ Damage = style damage × claw power (rarity × level) + ½ total ATK. DEF scales
 - **Milestone 2 (done):** 5 starters, crab select, world map, 5 hand-made levels with bosses, sea creatures, saved progress.
 - **Milestone 3 (done):** endless generated depths (biomes, layouts, featured creatures, modifiers, objectives), chimera bosses with traits and adaptive tactics, the portal, part levels, the tail socket, 16 new creatures, new attacks (zap, pull, volley, pierce, rake) and glowing attack effects with telegraphs.
 - **Milestone 4 (done):** Legendary and Gold tiers with mods, set bonuses (Gold Debra = Headliner), shell spacebar abilities (Shark Dash on the rare Shark Fin), passive tails (dodge, guard, mend), bag + stash + inventory screen, loot bubbles that vanish after 20 s, a branching and richer map, dev skip, longer boss dashes.
-- **Next candidates:** abilities for heads and legs, combat iteration #2, real models, sound, transmog UI.
+- **2026-10-20:** each crab is its own saved game; depth 1–3 bosses paced slower.
+- **2026-10-23:** a movement move per starter crab (jump, scuttle, lunge, arc, shimmy); a title screen with a creature parade and a coral backdrop; game-ready swaying props (corals, sponges, anemones, seagrass) used in the shallows, kelp, reef, wreck and sargassum.
+- **Next candidates:** abilities for heads and legs, tail augments for movement (Open), combat iteration #2, real models, sound, transmog UI.

@@ -157,6 +157,8 @@ func objective_status() -> String:
 func _process(_delta: float) -> void:
 	if touch and is_instance_valid(player):
 		touch.ability_ready = player.shell_ability.ready_fraction()
+		touch.move_charges = player.move_ability.charges
+		touch.move_ready = player.move_ability.recharge_fraction()
 
 
 func _physics_process(delta: float) -> void:

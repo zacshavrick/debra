@@ -22,6 +22,8 @@ var camera: Camera3D
 var home_position := Vector3.ZERO
 var focused_pickup: PartPickup
 var kills := 0
+## This crab's own movement move (Shift / B / MOVE).
+var move_ability: MoveAbility
 
 var _respawn_left := 0.0
 
@@ -41,6 +43,12 @@ func _ready() -> void:
 	PlayerInput.interact_pressed.connect(_on_interact)
 	PlayerInput.take_pressed.connect(_on_take)
 	PlayerInput.ability_pressed.connect(_on_ability)
+	move_ability = MoveAbility.new()
+	move_ability.name = "MoveAbility"
+	move_ability.crab = self
+	move_ability.kind = creature.move_ability
+	add_child(move_ability)
+	PlayerInput.move_pressed.connect(_on_move)
 
 
 func _default_loadout() -> Array[PartInstance]:
@@ -205,3 +213,11 @@ func equip_part(socket: int, part: PartInstance, pickup: PartPickup = null) -> v
 func equip_from_storage(socket: int, part: PartInstance) -> void:
 	GameState.remove_part(part)
 	equip_part(socket, part)
+
+
+## Shift / B / MOVE: this crab's own movement move, toward where you're steering.
+func _on_move() -> void:
+	if _dead or get_tree().paused:
+		return
+	var mv := PlayerInput.get_move()
+	move_ability.try_use(Vector3(mv.x, 0, -mv.y))

@@ -166,6 +166,10 @@ func _process(delta: float) -> void:
 	var sa := player.shell_ability
 	var ab := String(ShellAbility.ABILITIES[sa.kind()].info).get_slice(":", 0)
 	_ability.text = "%s %s: %s" % [_space_hint(), ab, "ready" if sa.cooldown_left <= 0.0 else "%.1fs" % sa.cooldown_left]
+	var mv := player.move_ability
+	if mv:
+		var pips := "●".repeat(mv.charges) + "○".repeat(mv.max_charges() - mv.charges)
+		_ability.text += "\n%s %s  %s" % [_move_hint(), String(mv.cfg().name), pips]
 	if not player.active_sets.is_empty():
 		var names: Array[String] = []
 		for s in player.active_sets:
@@ -290,4 +294,13 @@ func _space_hint() -> String:
 			return "[Space]"
 		PlayerInput.Scheme.GAMEPAD:
 			return "[A]"
+	return ""
+
+
+func _move_hint() -> String:
+	match PlayerInput.scheme:
+		PlayerInput.Scheme.KEYBOARD_MOUSE:
+			return "[Shift]"
+		PlayerInput.Scheme.GAMEPAD:
+			return "[B]"
 	return ""
