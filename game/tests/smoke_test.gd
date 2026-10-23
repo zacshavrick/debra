@@ -904,18 +904,19 @@ func _test_branching_and_dev_skip() -> void:
 ## Every starter's own movement move: charges, cooldowns, patterns.
 func _test_move_abilities() -> void:
 	var expect := {&"gary": [&"leap", 1, 0.9], &"saul": [&"scuttle", 3, 0.9], &"debra": [&"lunge", 2, 0.9],
-		&"marjorie": [&"arc", 2, 0.9], &"louise": [&"shimmy", 4, 1.2]}
+		&"marjorie": [&"arc", 2, 0.9], &"louise": [&"shimmy", 4, 0.6]}
 	for id in expect:
 		var e: Array = expect[id]
 		var c := GameState.starter_data(id)
 		_check(c.move_ability == e[0], "%s's move is %s (%s)" % [id, e[0], c.move_ability])
 		var m: Dictionary = MoveAbility.MOVES[e[0]]
 		_check(int(m.charges) == int(e[1]) and is_equal_approx(float(m.cooldown), float(e[2])), "%s: %d charges, %.0f s" % [id, e[1], e[2]])
-	# Saul scuttles Right, Right, Left, Left.
+	# Saul zigzags forward: Right, Right, Left, Left.
 	var lv := _open_level(GameState.level(&"shallows"), &"saul")
 	var p := lv.player
 	var mv := p.move_ability
 	var sides: Array[float] = []
+	var ahead := 0
 	for i in 4:
 		p.global_position = Vector3(0, 0, 0)
 		p.face_now(Vector3.FORWARD)
@@ -924,13 +925,16 @@ func _test_move_abilities() -> void:
 		_check(mv.try_use(Vector3.ZERO), "scuttle %d fires" % i)
 		await _seconds(0.35)
 		sides.append(signf(p.global_position.x - x0))
+		if p.global_position.z < -1.0:   # forward is -Z
+			ahead += 1
 	_check(sides == [1.0, 1.0, -1.0, -1.0], "Saul scuttles R, R, L, L (%s)" % str(sides))
+	_check(ahead == 4, "...and every scuttle carries him forward (%d of 4)" % ahead)
 	# Charges run out and refill one per cooldown.
 	mv.charges = 3
 	mv._recharge = 0.0
 	for i in 3:
 		mv.try_use(Vector3.ZERO)
-		await _seconds(0.24)
+		await _seconds(0.26)   # just past the 0.24 s scuttle
 	_check(mv.charges == 0 and not mv.try_use(Vector3.ZERO), "out of charges after 3 scuttles")
 	await _seconds(0.5)
 	_check(mv.charges == 1, "one charge back after 0.9 seconds (%d)" % mv.charges)
@@ -988,7 +992,7 @@ func _test_move_abilities() -> void:
 	p.receive_hit(50.0, p.global_position + Vector3.LEFT, 0.0, null)
 	_check(p.health.hp == hp, "nothing hits Gary mid-jump")
 	await _seconds(1.8)
-	_check(not p.airborne and p.global_position.x > 15.0, "Gary jumped way past the isopod and the rock (x %.1f)" % p.global_position.x)
+	_check(not p.airborne and p.global_position.x > 15.0 and p.global_position.x < 32.0, "Gary jumped way past the isopod and the rock (x %.1f)" % p.global_position.x)
 	_check(Vector2(p.global_position.x, p.global_position.z).length() <= lv.level.radius, "...and landed inside the arena")
 	lv.queue_free()
 	await _frames(3)

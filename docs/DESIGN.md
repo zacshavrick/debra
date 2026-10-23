@@ -31,11 +31,11 @@ Each starter has its own movement move (Decided: the moves, Space to use them, c
 
 | Crab | Move | Charges | Cooldown | What it does |
 |---|---|---|---|---|
-| Gary | Long Jump | 1 | 0.9 s | A huge jump (~60 m, stops at the arena edge) over creatures, rocks and coral; untouchable in the air |
-| Saul | Scuttle | 3 | 0.9 s | Sideways dash, pattern **Right, Right, Left, Left**, repeating |
+| Gary | Long Jump | 1 | 0.9 s | A big jump (~24 m, stops at the arena edge) over creatures, rocks and coral; untouchable in the air |
+| Saul | Scuttle | 3 | 0.9 s | Zigzag dash: diagonally forward, pattern **Right, Right, Left, Left**, repeating |
 | Debra | Lunge | 2 | 0.9 s | A long forward dash |
 | Marjorie | Arc Dash | 2 | 0.9 s | A fast (speed 30) medium dash that curves 90°, alternating right then left (Default) |
-| Louise | Shimmy | 4 | 1.2 s | Short dashes, pattern **Forward, Forward, Back, Forward** |
+| Louise | Shimmy | 4 | 0.6 s | Short dashes (~3 m), pattern **Forward, Forward, Back, Forward** |
 
 - **The move belongs to the crab, not to a part** (Default, Claude's recommendation): gear swapping rebuilds everything else, so the move is what keeps each crab feeling like itself. **Open:** whether tails should add universal movement augments (an extra charge, faster recharge), or whether moves should move onto tails and become swappable. Today it's a CreatureData field (`move_ability`), so either change is cheap.
 - "Forward" means where you're steering, or where you face if you're not moving. Saul's scuttles and Louise's back-steps keep you facing forward.

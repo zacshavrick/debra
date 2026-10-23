@@ -4,20 +4,20 @@ extends Node
 ## to the crab, not to a part (CreatureData.move_ability), so swapping gear never
 ## changes it. Charges refill one at a time, one per `cooldown` seconds.
 ##
-##   leap     Gary      1 charge, 0.9 s: a huge jump (~60 m) over everything, untouchable in the air
-##   scuttle  Saul      3 charges, 0.9 s: sideways dash, pattern Right, Right, Left, Left
+##   leap     Gary      1 charge, 0.9 s: a big jump (~24 m) over everything, untouchable in the air
+##   scuttle  Saul      3 charges, 0.9 s: zigzag dash forward, pattern Right, Right, Left, Left
 ##   lunge    Debra     2 charges, 0.9 s: a long forward dash
 ##   arc      Marjorie  2 charges, 0.9 s: a fast dash that curves (right, then left)
-##   shimmy   Louise    4 charges, 1.2 s: short dashes, pattern Fwd, Fwd, Back, Fwd
+##   shimmy   Louise    4 charges, 0.6 s: short dashes, pattern Fwd, Fwd, Back, Fwd
 
 signal used(kind: StringName, step: int)
 
 const MOVES := {
-	&"leap": {"name": "Long Jump", "charges": 1, "cooldown": 0.9, "speed": 40.0, "time": 1.5, "height": 6.0},
-	&"scuttle": {"name": "Scuttle", "charges": 3, "cooldown": 0.9, "speed": 15.0, "time": 0.22, "pattern": ["R", "R", "L", "L"]},
+	&"leap": {"name": "Long Jump", "charges": 1, "cooldown": 0.9, "speed": 24.0, "time": 1.0, "height": 4.5},
+	&"scuttle": {"name": "Scuttle", "charges": 3, "cooldown": 0.9, "speed": 17.0, "time": 0.24, "pattern": ["R", "R", "L", "L"]},
 	&"lunge": {"name": "Lunge", "charges": 2, "cooldown": 0.9, "speed": 20.0, "time": 0.35},
 	&"arc": {"name": "Arc Dash", "charges": 2, "cooldown": 0.9, "speed": 30.0, "time": 0.26, "turn": PI * 0.5},
-	&"shimmy": {"name": "Shimmy", "charges": 4, "cooldown": 1.2, "speed": 15.0, "time": 0.15, "pattern": ["F", "F", "B", "F"]},
+	&"shimmy": {"name": "Shimmy", "charges": 4, "cooldown": 0.6, "speed": 18.0, "time": 0.18, "pattern": ["F", "F", "B", "F"]},
 }
 
 var crab: Crab
@@ -69,12 +69,13 @@ func try_use(forward: Vector3) -> bool:
 	var c := cfg()
 	forward.y = 0.0
 	var fwd := forward.normalized() if forward.length() > 0.1 else crab.facing
-	var right := crab.facing.cross(Vector3.UP).normalized()
 	var dir := fwd
 	match kind:
 		&"scuttle":
+			# zigzag: diagonally forward, the side flipping R, R, L, L
 			var p: Array = c.pattern
-			dir = right if p[step % p.size()] == "R" else -right
+			var side := fwd.cross(Vector3.UP).normalized()
+			dir = (fwd + (side if p[step % p.size()] == "R" else -side)).normalized()
 		&"shimmy":
 			var p: Array = c.pattern
 			dir = fwd if p[step % p.size()] == "F" else -fwd
