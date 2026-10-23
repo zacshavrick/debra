@@ -291,16 +291,16 @@ func _small_button(text: String, cb: Callable) -> Button:
 func _space_hint() -> String:
 	match PlayerInput.scheme:
 		PlayerInput.Scheme.KEYBOARD_MOUSE:
-			return "[Space]"
+			return "[C]"
 		PlayerInput.Scheme.GAMEPAD:
-			return "[A]"
+			return "[B]"
 	return ""
 
 
 func _move_hint() -> String:
 	match PlayerInput.scheme:
 		PlayerInput.Scheme.KEYBOARD_MOUSE:
-			return "[Shift]"
+			return "[Space]"
 		PlayerInput.Scheme.GAMEPAD:
-			return "[B]"
+			return "[A]"
 	return ""

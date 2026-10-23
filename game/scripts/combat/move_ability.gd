@@ -1,23 +1,23 @@
 class_name MoveAbility
 extends Node
-## Each starter crab's own movement move (Shift / gamepad B / MOVE). It belongs
+## Each starter crab's own movement move (Space / gamepad A / MOVE). It belongs
 ## to the crab, not to a part (CreatureData.move_ability), so swapping gear never
 ## changes it. Charges refill one at a time, one per `cooldown` seconds.
 ##
-##   leap     Gary      1 charge, 3 s: a long jump over everything (untouchable in the air)
-##   scuttle  Saul      3 charges, 3 s: sideways dash, pattern Right, Right, Left, Left
-##   lunge    Debra     2 charges, 3 s: a long forward dash
-##   arc      Marjorie  2 charges, 3 s: a medium dash that curves (right, then left)
-##   shimmy   Louise    4 charges, 4 s: short dashes, pattern Fwd, Fwd, Back, Fwd
+##   leap     Gary      1 charge, 0.9 s: a huge jump (~60 m) over everything, untouchable in the air
+##   scuttle  Saul      3 charges, 0.9 s: sideways dash, pattern Right, Right, Left, Left
+##   lunge    Debra     2 charges, 0.9 s: a long forward dash
+##   arc      Marjorie  2 charges, 0.9 s: a fast dash that curves (right, then left)
+##   shimmy   Louise    4 charges, 1.2 s: short dashes, pattern Fwd, Fwd, Back, Fwd
 
 signal used(kind: StringName, step: int)
 
 const MOVES := {
-	&"leap": {"name": "Long Jump", "charges": 1, "cooldown": 3.0, "speed": 12.0, "time": 0.5, "height": 1.6},
-	&"scuttle": {"name": "Scuttle", "charges": 3, "cooldown": 3.0, "speed": 15.0, "time": 0.22, "pattern": ["R", "R", "L", "L"]},
-	&"lunge": {"name": "Lunge", "charges": 2, "cooldown": 3.0, "speed": 20.0, "time": 0.35},
-	&"arc": {"name": "Arc Dash", "charges": 2, "cooldown": 3.0, "speed": 11.0, "time": 0.45, "turn": PI * 0.5},
-	&"shimmy": {"name": "Shimmy", "charges": 4, "cooldown": 4.0, "speed": 15.0, "time": 0.15, "pattern": ["F", "F", "B", "F"]},
+	&"leap": {"name": "Long Jump", "charges": 1, "cooldown": 0.9, "speed": 40.0, "time": 1.5, "height": 6.0},
+	&"scuttle": {"name": "Scuttle", "charges": 3, "cooldown": 0.9, "speed": 15.0, "time": 0.22, "pattern": ["R", "R", "L", "L"]},
+	&"lunge": {"name": "Lunge", "charges": 2, "cooldown": 0.9, "speed": 20.0, "time": 0.35},
+	&"arc": {"name": "Arc Dash", "charges": 2, "cooldown": 0.9, "speed": 30.0, "time": 0.26, "turn": PI * 0.5},
+	&"shimmy": {"name": "Shimmy", "charges": 4, "cooldown": 1.2, "speed": 15.0, "time": 0.15, "pattern": ["F", "F", "B", "F"]},
 }
 
 var crab: Crab
@@ -35,7 +35,7 @@ static func info(id: StringName) -> String:
 	var m: Dictionary = MOVES.get(id, {})
 	if m.is_empty():
 		return ""
-	var t := "%s: %d charge%s, %.0f s each" % [m.name, m.charges, "" if int(m.charges) == 1 else "s", m.cooldown]
+	var t := "%s: %d charge%s, %.1f s each" % [m.name, m.charges, "" if int(m.charges) == 1 else "s", m.cooldown]
 	if m.has("pattern"):
 		t += " (" + " ".join(PackedStringArray(m.pattern)) + ")"
 	return t
@@ -93,7 +93,7 @@ func try_use(forward: Vector3) -> bool:
 		_hop_left = sec
 		crab.airborne = true
 		_saved_mask = crab.collision_mask
-		crab.collision_mask = 1   # sail over creatures, still stopped by walls
+		crab.collision_mask = 0   # sail over creatures, rocks and coral (kept inside the arena below)
 	used.emit(kind, step)
 	step += 1
 	charges -= 1
@@ -112,6 +112,7 @@ func _physics_process(delta: float) -> void:
 			charges += 1
 			_recharge = float(cfg().cooldown) if charges < max_charges() else 0.0
 	if _hop_left > 0.0:
+		_keep_in_arena()
 		_hop_left -= delta
 		var t := 1.0 - _hop_left / _hop_total
 		crab.body.position.y = sin(clampf(t, 0.0, 1.0) * PI) * float(cfg().height)
@@ -120,3 +121,19 @@ func _physics_process(delta: float) -> void:
 			crab.airborne = false
 			crab.collision_mask = _saved_mask
 			FX.ring(crab.get_parent(), crab.global_position + Vector3(0, 0.1, 0), 1.6, Color(0.9, 0.85, 0.7))
+
+
+## Gary flies over everything (no collision, so no floor either): keep his feet
+## on the sand plane while the body arcs, and stop him at the arena's edge.
+func _keep_in_arena() -> void:
+	crab.global_position.y = 0.0
+	crab.velocity.y = 0.0
+	var lv := crab.get_parent() as Level
+	if lv == null or lv.level == null:
+		return
+	var limit := lv.level.radius - 1.5
+	var flat := Vector2(crab.global_position.x, crab.global_position.z)
+	if flat.length() > limit:
+		flat = flat.normalized() * limit
+		crab.global_position = Vector3(flat.x, 0.0, flat.y)
+		crab._dash_left = minf(crab._dash_left, 0.0)

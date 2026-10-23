@@ -26,16 +26,16 @@ Pick a crab → pick a depth on the map → do the objective → beat the boss �
 | **Marjorie the Hermit Crab** | Default | Conch shell, one crusher, slow tank | Tucked |
 | **Gary the Spider Crab** | Default | Long lash arms, very long legs | Tucked |
 
-### Movement moves (Shift / gamepad B / MOVE)
-Each starter has its own movement move (Decided: the moves). Charges refill one at a time, each taking its cooldown.
+### Movement moves (Space / gamepad A / MOVE)
+Each starter has its own movement move (Decided: the moves, Space to use them, cooldowns cut by 70% on 2026-10-23). Charges refill one at a time, each taking its cooldown.
 
 | Crab | Move | Charges | Cooldown | What it does |
 |---|---|---|---|---|
-| Gary | Long Jump | 1 | 3 s | A long jump over creatures; untouchable in the air |
-| Saul | Scuttle | 3 | 3 s | Sideways dash, pattern **Right, Right, Left, Left**, repeating |
-| Debra | Lunge | 2 | 3 s | A long forward dash |
-| Marjorie | Arc Dash | 2 | 3 s | A medium dash that curves 90°, alternating right then left (Default) |
-| Louise | Shimmy | 4 | 4 s | Short dashes, pattern **Forward, Forward, Back, Forward** |
+| Gary | Long Jump | 1 | 0.9 s | A huge jump (~60 m, stops at the arena edge) over creatures, rocks and coral; untouchable in the air |
+| Saul | Scuttle | 3 | 0.9 s | Sideways dash, pattern **Right, Right, Left, Left**, repeating |
+| Debra | Lunge | 2 | 0.9 s | A long forward dash |
+| Marjorie | Arc Dash | 2 | 0.9 s | A fast (speed 30) medium dash that curves 90°, alternating right then left (Default) |
+| Louise | Shimmy | 4 | 1.2 s | Short dashes, pattern **Forward, Forward, Back, Forward** |
 
 - **The move belongs to the crab, not to a part** (Default, Claude's recommendation): gear swapping rebuilds everything else, so the move is what keeps each crab feeling like itself. **Open:** whether tails should add universal movement augments (an extra charge, faster recharge), or whether moves should move onto tails and become swappable. Today it's a CreatureData field (`move_ability`), so either change is cheap.
 - "Forward" means where you're steering, or where you face if you're not moving. Saul's scuttles and Louise's back-steps keep you facing forward.
@@ -172,10 +172,10 @@ Luck (depth, bosses, champions, Treasure, Lucky) boosts tiers up to Epic fully, 
 - Wear **every piece, all Epic or better**, and the bonus switches on: +20–30% HP/ATK/DEF plus perks that reuse the mods (for example, Shore = Swift, Mantis = Echo, King Crab = Detonate).
 - **Headliner (Debra):** all 6 Debra pieces at **Gold** gives +60% HP/ATK/DEF, Echo, Vampiric ×2, Second wind and Detonate. It's the best gear in the game, so the strongest look in the sea is Debra's own and transmog is mostly unnecessary.
 
-### Shell abilities: Space / gamepad A (Decided: every shell has a basic spacebar ability)
+### Shell abilities: C / gamepad B / ABILITY (Decided: every shell has an ability; the basic dash was removed 2026-10-23)
 | Ability | Shells | Cooldown |
 |---|---|---|
-| Dash (quick dodge) | most crab and lobster shells | 1.8 s |
+| Harden (60% less damage for 2.5 s; replaced the basic dash, Default) | most crab and lobster shells | 6 s |
 | Deflector (blocks 80% of damage, bounces shots back) | hermit conches, Marjorie, clam, nautilus | 7 s |
 | Cloak (invisible 3 s; next hit ×2) | mantis, ghost crab, decorator, cuttlebone | 10 s |
 | Spike Burst | urchin, puffer | 5 s |
@@ -214,11 +214,11 @@ Damage = style damage × claw power (rarity × level) + ½ total ATK. DEF scales
 | Move | WASD / arrows | Left stick | Left thumb |
 | Aim | Mouse | Right stick | Auto-aim |
 | Left / right claw | LMB, J / RMB, K | LB, LT / RB, RT | L CLAW / R CLAW |
-| Shell ability | Space | A | ABILITY |
+| Shell ability | C | B | ABILITY |
 | Take to bag | Q | Y | TAKE |
 | Inventory | I or Tab | Back | INV |
 | Equip (left claw) / to right claw | E or F / R | X / D-pad right | EQUIP, EQUIP L / EQUIP R |
-| Own movement move | Shift | B | MOVE |
+| Own movement move | Space | A | MOVE |
 | Back to map | Esc (or the portal) | Start | MAP button |
 | Dev: random part / spawn / heal / boss / skip level | F1 / F2 / F3 / F4 / F5 | | SKIP |
 

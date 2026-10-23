@@ -11,13 +11,13 @@ signal interact_pressed(alt: bool)
 signal debug_pressed(key: int)
 ## Back to the map (Esc / Start / the MAP button).
 signal menu_pressed
-## Shell ability (Space / A / the touch button).
+## Shell ability (C / B / the touch ABILITY button).
 signal ability_pressed
 ## Put the part under you in your bag (Q / Y / BAG).
 signal take_pressed
 ## Open the inventory (I or Tab / Back / INV).
 signal inventory_pressed
-## This crab's movement move (Shift / B / MOVE).
+## This crab's movement move (Space / A / MOVE).
 signal move_pressed
 
 enum Scheme { KEYBOARD_MOUSE, GAMEPAD, TOUCH }
@@ -192,8 +192,8 @@ func _register_default_bindings() -> void:
 	_bind("claw_right", [KEY_K], [JOY_BUTTON_RIGHT_SHOULDER], [[JOY_AXIS_TRIGGER_RIGHT, 1.0]])
 	_bind("interact", [KEY_E, KEY_F], [JOY_BUTTON_X], [])
 	_bind("interact_alt", [KEY_R], [JOY_BUTTON_DPAD_RIGHT], [])
-	_bind("move_ability", [KEY_SHIFT], [JOY_BUTTON_B], [])
-	_bind("ability", [KEY_SPACE], [JOY_BUTTON_A], [])
+	_bind("move_ability", [KEY_SPACE], [JOY_BUTTON_A], [])
+	_bind("ability", [KEY_C], [JOY_BUTTON_B], [])
 	_bind("take", [KEY_Q], [JOY_BUTTON_Y], [])
 	_bind("inventory", [KEY_I, KEY_TAB], [JOY_BUTTON_BACK], [])
 	_bind("menu", [KEY_ESCAPE], [JOY_BUTTON_START], [])

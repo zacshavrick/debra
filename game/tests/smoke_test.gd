@@ -728,7 +728,7 @@ func _test_shell_abilities() -> void:
 	_check(PartCatalog.by_id(&"shark_tail") == null, "shark tail is gone from the loot")
 	var lv := _open_level(GameState.level_at(3, 0), &"saul")
 	var p := lv.player
-	var shell_for := {&"dash": &"saul_shell", &"shark_dash": &"shark_fin", &"shield": &"hermit_shell", &"cloak": &"mantis_carapace",
+	var shell_for := {&"harden": &"saul_shell", &"shark_dash": &"shark_fin", &"shield": &"hermit_shell", &"cloak": &"mantis_carapace",
 		&"spikes": &"urchin_shell", &"quake": &"coconut_shell", &"heal": &"starfish_shell", &"roll": &"isopod_shell"}
 	for k in shell_for:
 		p.global_position = Vector3.ZERO
@@ -742,14 +742,18 @@ func _test_shell_abilities() -> void:
 		p.health.hp = p.health.max_hp * 0.5
 		var hp_p := p.health.hp
 		var shots := get_tree().get_nodes_in_group("projectiles").size()
-		var use_dir := Vector3.RIGHT if k == &"dash" or k == &"roll" else Vector3.FORWARD
+		var use_dir := Vector3.RIGHT if k == &"roll" else Vector3.FORWARD
 		_check(p.shell_ability.try_use(use_dir), "%s fires" % k)
 		_check(not p.shell_ability.try_use(Vector3.FORWARD), "%s has a cooldown" % k)
 		await _frames(3)
 		match k:
-			&"dash", &"roll":
+			&"roll":
 				await _seconds(0.3)
 				_check(p.global_position.distance_to(start) > 1.0, "%s moves you" % k)
+			&"harden":
+				var before_h := p.health.hp
+				p.receive_hit(20.0, Vector3(0, 0, -3), 0.0, null)
+				_check(before_h - p.health.hp <= 20.0 * 0.45, "harden takes most of the sting out of a hit")
 			&"shark_dash":
 				await _seconds(0.5)
 				_check(p.global_position.distance_to(start) > 4.0 and dummy.health.hp < hp_e, "shark dash goes far and rams")
@@ -758,7 +762,10 @@ func _test_shell_abilities() -> void:
 				p.receive_hit(20.0, Vector3(0, 0, -3), 0.0, dummy)
 				_check(before - p.health.hp < 20.0 * 0.4, "deflector blocks most damage")
 				var shot := BubbleShot.fire(dummy, p.global_position + Vector3(0, 0.4, -1.4), Vector3.BACK, 5.0, 8.0, 5.0, Color.WHITE)
-				await _seconds(0.2)
+				for i in 8:   # the shot needs ~0.2 s to arrive; give slow frames some slack
+					await _seconds(0.1)
+					if not is_instance_valid(shot) or shot.team == p.team:
+						break
 				_check(not is_instance_valid(shot) or shot.team == p.team, "deflector bounces shots back")
 			&"cloak":
 				_check(p.cloaked, "cloak hides you")
@@ -896,8 +903,8 @@ func _test_branching_and_dev_skip() -> void:
 
 ## Every starter's own movement move: charges, cooldowns, patterns.
 func _test_move_abilities() -> void:
-	var expect := {&"gary": [&"leap", 1, 3.0], &"saul": [&"scuttle", 3, 3.0], &"debra": [&"lunge", 2, 3.0],
-		&"marjorie": [&"arc", 2, 3.0], &"louise": [&"shimmy", 4, 4.0]}
+	var expect := {&"gary": [&"leap", 1, 0.9], &"saul": [&"scuttle", 3, 0.9], &"debra": [&"lunge", 2, 0.9],
+		&"marjorie": [&"arc", 2, 0.9], &"louise": [&"shimmy", 4, 1.2]}
 	for id in expect:
 		var e: Array = expect[id]
 		var c := GameState.starter_data(id)
@@ -923,10 +930,10 @@ func _test_move_abilities() -> void:
 	mv._recharge = 0.0
 	for i in 3:
 		mv.try_use(Vector3.ZERO)
-		await _seconds(0.3)
+		await _seconds(0.24)
 	_check(mv.charges == 0 and not mv.try_use(Vector3.ZERO), "out of charges after 3 scuttles")
-	await _seconds(3.0)
-	_check(mv.charges == 1, "one charge back after 3 seconds (%d)" % mv.charges)
+	await _seconds(0.5)
+	_check(mv.charges == 1, "one charge back after 0.9 seconds (%d)" % mv.charges)
 	lv.queue_free()
 	await _frames(3)
 	# Louise: Forward, Forward, Back, Forward.
@@ -972,6 +979,7 @@ func _test_move_abilities() -> void:
 	p.face_now(Vector3.RIGHT)
 	var wall := lv.spawn_enemy(PartCatalog.creature(&"giant_isopod"), Vector3(2.5, 0, 0), false)
 	wall.lock_ai(30.0)
+	LevelBuilder._solid(lv, Vector3(6, 0, 0), 1.2)   # a rock in the way too
 	await _frames(2)
 	p.move_ability.try_use(Vector3.ZERO)
 	await _frames(5)
@@ -979,8 +987,9 @@ func _test_move_abilities() -> void:
 	var hp := p.health.hp
 	p.receive_hit(50.0, p.global_position + Vector3.LEFT, 0.0, null)
 	_check(p.health.hp == hp, "nothing hits Gary mid-jump")
-	await _seconds(0.7)
-	_check(not p.airborne and p.global_position.x > 4.0, "Gary jumped over the isopod (x %.1f)" % p.global_position.x)
+	await _seconds(1.8)
+	_check(not p.airborne and p.global_position.x > 15.0, "Gary jumped way past the isopod and the rock (x %.1f)" % p.global_position.x)
+	_check(Vector2(p.global_position.x, p.global_position.z).length() <= lv.level.radius, "...and landed inside the arena")
 	lv.queue_free()
 	await _frames(3)
 

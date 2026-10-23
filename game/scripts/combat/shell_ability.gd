@@ -1,13 +1,13 @@
 class_name ShellAbility
 extends Node
-## Spacebar: every shell gives one active ability (PartData.ability on the
+## C / gamepad B / ABILITY: every shell gives one active ability (PartData.ability on the
 ## SHELL part). Better shells (rarity) recharge faster and hit harder;
 ## the Timeless mod cuts cooldowns by 40%.
 
 signal used(kind: StringName)
 
 const ABILITIES := {
-	&"dash": {"info": "Dash: a quick dodge", "cooldown": 1.8},
+	&"harden": {"info": "Harden: take 60% less damage for 2.5 s", "cooldown": 6.0, "time": 2.5},
 	&"shield": {"info": "Deflector: a bubble that blocks 80% damage and bounces shots back", "cooldown": 7.0, "time": 1.8},
 	&"cloak": {"info": "Cloak: vanish for 3 s; your next hit does double damage", "cooldown": 10.0, "time": 3.0},
 	&"shark_dash": {"info": "Shark Dash: a long, straight ramming charge", "cooldown": 2.5, "damage": 16.0},
@@ -26,7 +26,7 @@ var _bubble: MeshInstance3D
 
 
 static func info(part: PartInstance) -> String:
-	var id: StringName = part.data.ability if part and ABILITIES.has(part.data.ability) else &"dash"
+	var id: StringName = part.data.ability if part and ABILITIES.has(part.data.ability) else &"harden"
 	var d: Dictionary = ABILITIES[id]
 	return d.info
 
@@ -35,7 +35,7 @@ func kind() -> StringName:
 	var shell := crab.equipment.get_part(Equipment.Socket.SHELL)
 	if shell and ABILITIES.has(shell.data.ability):
 		return shell.data.ability
-	return &"dash"
+	return &"harden"
 
 
 func cooldown_total() -> float:
@@ -70,9 +70,10 @@ func try_use(dir: Vector3) -> bool:
 	var origin := crab.global_position
 	cooldown_left = cooldown_total()
 	match k:
-		&"dash":
-			crab.start_dash(dir, 14.0, 0.18)
-			FX.burst(parent, origin + Vector3(0, 0.3, 0), Color(0.85, 0.95, 1.0), 10, 2.0, 0.06)
+		&"harden":
+			_start(k, cfg.time)
+			crab.damage_taken_mult = 0.4
+			_show_bubble(Color(0.95, 0.8, 0.45))
 		&"shark_dash":
 			crab.start_dash(dir, 22.0, 0.42, _power(cfg.damage), 6.0, true)
 			FX.ribbon(parent, PackedVector3Array([origin + Vector3(0, 0.3, 0), origin + Vector3(0, 0.3, 0) + dir * 9.0]), 0.6, Color(0.6, 0.85, 1.0), 0.35)
@@ -123,7 +124,7 @@ func _start(k: StringName, sec: float) -> void:
 
 func _end() -> void:
 	match _active_kind:
-		&"shield", &"roll":
+		&"shield", &"roll", &"harden":
 			crab.damage_taken_mult = 1.0
 			crab.reflecting = false
 		&"cloak":

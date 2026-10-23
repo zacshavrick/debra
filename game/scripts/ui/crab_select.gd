@@ -135,7 +135,7 @@ func _set_index(i: int) -> void:
 			continue
 		for st in PartData.STATS:
 			tot[st] = float(tot[st]) + p.stat(st)
-	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s\n%s\nSpace: %s\nShift (own move): %s" % [
+	_stats.text = "HP %d   ATK %d   DEF %d   SPD %.1f      Claws: %s / %s\n%s\nC (shell): %s\nSpace (own move): %s" % [
 		roundi(tot[&"max_hp"]), roundi(tot[&"attack"]), roundi(tot[&"defense"]),
 		maxf(1.5, Crab.BASE_SPEED + float(tot[&"speed"]) * Crab.SPEED_PER_POINT),
 		CrabCombat.style_id(parts[Equipment.Socket.CLAW_L]), CrabCombat.style_id(parts[Equipment.Socket.CLAW_R]),
