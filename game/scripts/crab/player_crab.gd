@@ -128,7 +128,13 @@ func _update_pickup_focus() -> void:
 
 
 func _on_interact(alt: bool) -> void:
-	if _dead or not is_instance_valid(focused_pickup):
+	if _dead:
+		return
+	if not is_instance_valid(focused_pickup):
+		if not alt:   # nothing to equip: maybe you're standing at the portal
+			for n in get_tree().get_nodes_in_group("portals"):
+				if (n as Portal).try_interact(self):
+					return
 		return
 	var part := focused_pickup.part
 	var socket: int = Equipment.sockets_for(part.data.slot)[0]

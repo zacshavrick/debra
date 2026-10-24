@@ -147,11 +147,11 @@ func _on_boss_spawned(b: Creature) -> void:
 	_boss_name.text = b.display_name
 
 
-## No prompt: a portal opened where the boss died. Take it whenever.
+## No prompt: a portal opened ~20 m from the boss. Click it whenever.
 func _on_cleared(unlocked_next: bool) -> void:
-	var msg := "Boss down! A portal opened. Take it whenever you're done looting."
+	var msg := "Boss down! A portal opened nearby. Click it whenever you're done looting."
 	if unlocked_next:
-		msg = "Boss down! Depth %d unlocked. The portal's open whenever." % (level.level.depth + 1)
+		msg = "Boss down! Depth %d unlocked. Click the portal whenever." % (level.level.depth + 1)
 	toast(msg, Color(1, 0.85, 0.4), 4.0)
 
 

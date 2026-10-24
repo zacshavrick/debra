@@ -384,17 +384,56 @@ func _on_boss_died(b: Creature) -> void:
 		cleared.emit(unlocked)
 
 
-## A portal back to the map. It stays open; walk in whenever you're done looting.
+## A portal back to the map, ~PORTAL_DISTANCE from where the boss died. It stays
+## open; click it (or walk up and interact) whenever you're done looting.
 func open_portal(at: Vector3) -> void:
 	if is_instance_valid(portal):
 		return
 	portal = Portal.new()
-	var p := Vector3(at.x, 0, at.z)
-	if p.length() > level.radius - 3.0:
-		p = p.normalized() * (level.radius - 3.0)
 	add_child(portal)
-	portal.global_position = p
+	portal.global_position = portal_spot(at)
 	portal.entered.connect(back_to_map)
+
+
+const PORTAL_DISTANCE := 20.0
+
+
+## A clear spot PORTAL_DISTANCE from `at`, inside the arena and off any rock.
+## If the arena can't fit that, the spot that comes closest.
+func portal_spot(at: Vector3) -> Vector3:
+	var limit := level.radius - 2.0   # 20 m fits even from the middle of the smallest (22 m) arena
+	var origin := Vector3(at.x, 0, at.z)
+	var best := Vector3.ZERO
+	var best_err := INF
+	var a0 := rng.randf() * TAU
+	for i in 24:
+		var a := a0 + TAU * i / 24.0
+		var p := origin + Vector3(cos(a), 0, sin(a)) * PORTAL_DISTANCE
+		if p.length() > limit:
+			p = p.normalized() * limit
+		var err := absf(p.distance_to(origin) - PORTAL_DISTANCE)
+		if _blocked(p):
+			err += 100.0
+		if err < 0.5:
+			return p
+		if err < best_err:
+			best_err = err
+			best = p
+	return best
+
+
+## A rock or wall within reach of `p`?
+func _blocked(p: Vector3) -> bool:
+	var q := PhysicsShapeQueryParameters3D.new()
+	var s := CylinderShape3D.new()   # sits above the floor (whose top is y = 0)
+	s.radius = 1.8
+	s.height = 1.0
+	q.shape = s
+	q.transform = Transform3D(Basis(), p + Vector3(0, 1.0, 0))
+	for hit in get_world_3d().direct_space_state.intersect_shape(q, 8):
+		if hit.collider is StaticBody3D:
+			return true
+	return false
 
 
 func _pick_creature() -> CreatureData:

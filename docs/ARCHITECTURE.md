@@ -145,6 +145,7 @@ Combat will be rebuilt 3–4 times. Everything combat-specific lives in `scripts
 | 2026-10-19 | ~~Bag shared by all crabs~~ → 2026-10-20: each crab is its own save (gear, bag, stash, progress) | Zac: each crab is a separate game; NEW GAME restarts one |
 | 2026-10-20 | `boss_pace` slows depth 1-3 bosses (x2 / x1.7 / x1.4 cooldowns) | Zac: early bosses killed new players too often |
 | 2026-10-19 | Branching chart from a deterministic graph, not stored | Endless and shareable like the depths themselves |
+| 2026-10-24 | Portal opens ~20 m from the boss (`Level.portal_spot`, avoids rocks) and is clicked, not walked into | Zac: no accidental exits while looting. Clicks and taps arrive as `PlayerInput.point_pressed`; gamepad uses interact near it (`PlayerCrab._on_interact` → `Portal.try_interact`, parts first) |
 
 ## Milestone 4 systems
 - **Tiers and mods.** `Rarity.Tier` runs Common to Gold. `PartInstance.roll()` is the one place drops get their tier, their mod (`Mods.roll_for`: a regular mod for Legendary, a gold-only one for Gold) and the Golden Debra swap. Boss and champion guarantees raise the tier with `set_tier()`, which re-rolls the mod for the new tier.

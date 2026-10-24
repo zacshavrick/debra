@@ -1,21 +1,28 @@
 class_name Portal
 extends Node3D
-## Opens where the boss died. Walk into it to go back to the map, whenever
-## you like: no prompt, no rush, finish looting first.
+## Opens ~20 m from where the boss died. Click (or tap) it to go back to the
+## map, whenever you like: walking into it does nothing, so you can loot in
+## peace. Gamepad: walk up to it and press interact.
 
 signal entered
 
-const RADIUS := 1.1
+## How big the clickable target is around the ring (metres).
+const PICK_RADIUS := 1.7
+## Interact (E / X) works within this distance.
+const USE_RANGE := 3.0
 
 var _t := 0.0
 var _ring: MeshInstance3D
 var _swirl: MeshInstance3D
 var _armed := 1.0   ## seconds before it accepts you (so it can't grab you mid-fight)
 var _used := false
+var _label: Label3D
 
 
 func _ready() -> void:
 	add_to_group("portals")
+	PlayerInput.point_pressed.connect(_on_point)
+	PlayerInput.scheme_changed.connect(_on_scheme)
 	var glow := CritterVisual._glass(Color(0.45, 0.85, 1.0), 0.9, 2.2)
 	_ring = MeshInstance3D.new()
 	var t := TorusMesh.new()
@@ -67,7 +74,8 @@ func _ready() -> void:
 	sparks.position.y = 1.3
 	add_child(sparks)
 	var l := Label3D.new()
-	l.text = "Portal: back to the map"
+	_label = l
+	_update_label()
 	l.font_size = 40
 	l.outline_size = 10
 	l.pixel_size = 0.007
@@ -84,11 +92,63 @@ func _process(delta: float) -> void:
 	_armed -= delta
 	_swirl.rotation.y += delta * 2.5
 	_ring.scale = Vector3.ONE * (1.0 + sin(_t * 3.0) * 0.04)
-	if _used or _armed > 0.0:
+
+
+## Go through (the click, tap or interact already checked out).
+func use() -> void:
+	if _used or _armed > 0.0 or get_tree().paused:
 		return
+	var p := _player()
+	if p == null or p.is_dead():
+		return
+	_used = true
+	FX.ring(get_parent(), global_position + Vector3(0, 1.3, 0), 3.0, Color(0.5, 0.9, 1.0), 0.4)
+	entered.emit()
+
+
+## Does a click / tap at `screen_pos` land on the portal?
+func is_under(screen_pos: Vector2) -> bool:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return false
+	var centre := global_position + Vector3(0, 1.1, 0)
+	if cam.is_position_behind(centre):
+		return false
+	var c := cam.unproject_position(centre)
+	var edge := cam.unproject_position(centre + cam.global_basis.x * PICK_RADIUS)
+	return screen_pos.distance_to(c) <= c.distance_to(edge)
+
+
+func _on_point(screen_pos: Vector2) -> void:
+	if is_under(screen_pos):
+		use()
+
+
+## Gamepad / keys: interact while standing near it. PlayerCrab calls this only
+## when there is no part under you (equipping comes first).
+func try_interact(p: Creature) -> bool:
+	if Vector2(p.global_position.x - global_position.x, p.global_position.z - global_position.z).length() > USE_RANGE:
+		return false
+	use()
+	return _used
+
+
+func _on_scheme(_s: PlayerInput.Scheme) -> void:
+	_update_label()
+
+
+func _update_label() -> void:
+	match PlayerInput.scheme:
+		PlayerInput.Scheme.GAMEPAD:
+			_label.text = "Portal: walk up + %s to go back to the map" % PlayerInput.hint(false)
+		PlayerInput.Scheme.TOUCH:
+			_label.text = "Portal: tap it to go back to the map"
+		_:
+			_label.text = "Portal: click it to go back to the map"
+
+
+func _player() -> PlayerCrab:
 	for n in get_tree().get_nodes_in_group("player"):
-		var p := n as Creature
-		if p and not p.is_dead() and Vector2(p.global_position.x - global_position.x, p.global_position.z - global_position.z).length() < RADIUS:
-			_used = true
-			FX.ring(get_parent(), global_position + Vector3(0, 1.3, 0), 3.0, Color(0.5, 0.9, 1.0), 0.4)
-			entered.emit()
+		if n is PlayerCrab:
+			return n as PlayerCrab
+	return null

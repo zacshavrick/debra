@@ -37,7 +37,7 @@ Built with **Godot 4.7.2**. It runs as a **Windows exe** and as a **mobile web a
 | Equip part (left claw) | E / F | X | EQUIP / EQUIP L |
 | Equip to right claw | R | D-pad right | EQUIP R |
 | Own movement move (per crab) | Space | A | MOVE |
-| Back to map | Esc, or the portal | Start | MAP |
+| Back to map | Esc, or click the portal | Start, or X at the portal | MAP, or tap the portal |
 | Dev: random part / spawn / heal / boss / skip | F1 / F2 / F3 / F4 / F5 | | SKIP |
 
 ![creatures](docs/screenshots/creatures.png)

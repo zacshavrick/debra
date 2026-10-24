@@ -114,6 +114,7 @@ func _on_press(finger: int, pos: Vector2) -> void:
 			_claw_finger[side] = finger
 			PlayerInput.touch_claw[side] = true
 			return
+	PlayerInput.touch_point(pos)   # tapping the world (e.g. the portal)
 	if pos.x < size.x * 0.55 and _stick_finger == -1:
 		_stick_finger = finger
 		_stick_origin = pos

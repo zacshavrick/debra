@@ -19,6 +19,9 @@ signal take_pressed
 signal inventory_pressed
 ## This crab's movement move (Space / A / MOVE).
 signal move_pressed
+## A click (left mouse) or a tap on the world, in screen pixels. Used to pick
+## things you click on, like the portal. Claw attacks still read the button.
+signal point_pressed(screen_pos: Vector2)
 
 enum Scheme { KEYBOARD_MOUSE, GAMEPAD, TOUCH }
 enum Claw { LEFT, RIGHT }
@@ -162,6 +165,8 @@ func _input(event: InputEvent) -> void:
 		if event.pressed and not event.echo and event.keycode >= KEY_F1 and event.keycode <= KEY_F10:
 			debug_pressed.emit(event.keycode)
 	elif event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			point_pressed.emit(event.position)
 		# Clicks only: stray mouse motion (hover, browsers on touch devices)
 		# must not hide the touch controls.
 		_set_scheme(Scheme.KEYBOARD_MOUSE)
@@ -246,3 +251,9 @@ func take_hint() -> String:
 func touch_move_ability() -> void:
 	_set_scheme(Scheme.TOUCH)
 	move_pressed.emit()
+
+
+## A tap that didn't land on a touch button (called by TouchControls).
+func touch_point(pos: Vector2) -> void:
+	_set_scheme(Scheme.TOUCH)
+	point_pressed.emit(pos)

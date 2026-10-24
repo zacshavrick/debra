@@ -15,7 +15,7 @@ You play a little crustacean on the seafloor. Every kill drops a body part. Equi
 - **No plot. Drop in and play.**
 
 ## Core loop
-Pick a crab → pick a depth on the map → do the objective → beat the boss → walk through the portal whenever you're done looting → go deeper. Parts from deeper levels are stronger, so diving deeper always pays off.
+Pick a crab → pick a depth on the map → do the objective → beat the boss → click the portal whenever you're done looting → go deeper. Parts from deeper levels are stronger, so diving deeper always pays off.
 
 ## Starter crustaceans
 | Crab | Status | Plays like | Tail |
@@ -53,7 +53,7 @@ Each starter has its own movement move (Decided: the moves, Space to use them, c
 | **The map branches** (Decided): 2–3 routes per depth that fork and rejoin; a level unlocks when any level leading to it is cleared. Cliffs, kelp, coral, glowing specks and whale bones line the chart, the water darkens with depth, and modifier dots ring each level | Default (look) |
 | **Bosses dash much farther** (×2.2 reach, Decided for the shark boss; applies to every boss charge) | Decided |
 | **Dev skip** (Decided): F5 or SKIP in a level clears it and opens the portal; "DEV: mark cleared" on the map. `GameState.dev_mode` | Decided |
-| **When the boss dies, a portal opens.** No prompt: walk through it whenever, and keep fighting/looting until then | Decided |
+| **When the boss dies, a portal opens ~20 m away** (2026-10-24). No prompt, and walking into it does nothing: **click it** (tap on touch; gamepad: walk up and press X / E) whenever you want to leave, and keep fighting/looting until then | Decided |
 
 ### What makes each generated depth different (Decided ingredients, Default details)
 1. **Biome.** Shallows, Kelp, Reef, Wreck, Abyss, plus Smoking Vents (6+), Sargassum Drift (6+), Cold Seep (7+), Black Trench (8+) and Whale Fall (9+), each with its own palette and scenery. Newer biomes get likelier the deeper you go.
@@ -219,7 +219,7 @@ Damage = style damage × claw power (rarity × level) + ½ total ATK. DEF scales
 | Inventory | I or Tab | Back | INV |
 | Equip (left claw) / to right claw | E or F / R | X / D-pad right | EQUIP, EQUIP L / EQUIP R |
 | Own movement move | Space | A | MOVE |
-| Back to map | Esc (or the portal) | Start | MAP button |
+| Back to map | Esc, or click the portal | Start, or X at the portal | MAP button, or tap the portal |
 | Dev: random part / spawn / heal / boss / skip level | F1 / F2 / F3 / F4 / F5 | | SKIP |
 
 ## Title screen and decor (Decided)

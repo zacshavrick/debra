@@ -369,10 +369,12 @@ func _test_level_flow_and_portal() -> void:
 	await _frames(2)
 	e.receive_hit(1000.0, Vector3.ZERO, 0.0, player)
 	await _frames(3)
+	var boss_at := Vector3.ZERO
 	_check(is_instance_valid(level.boss), "reaching the kill goal brings the boss")
 	if is_instance_valid(level.boss):
 		_check(level.boss.is_boss and level.boss.size > 1.5, "the boss is big")
 		_check(level.boss.get_node_or_null("BossBrain") != null, "the boss has a boss brain")
+		boss_at = level.boss.global_position
 		while not level.boss.is_dead():
 			level.boss.receive_hit(1000.0, Vector3.ZERO, 0.0, player)
 		await _frames(3)
@@ -380,16 +382,39 @@ func _test_level_flow_and_portal() -> void:
 	_check(GameState.is_cleared(&"shallows"), "clear is saved")
 	_check(GameState.is_unlocked(&"kelp"), "clearing depth 1 unlocks depth 2")
 	_check(not GameState.is_unlocked(&"reef"), "depth 3 still locked")
-	_check(is_instance_valid(level.portal), "a portal opens where the boss died")
+	_check(is_instance_valid(level.portal), "a portal opens after the boss dies")
 	if is_instance_valid(level.portal):
+		var gap := Vector2(level.portal.global_position.x - boss_at.x, level.portal.global_position.z - boss_at.z).length()
+		_check(absf(gap - Level.PORTAL_DISTANCE) < 1.0, "...about 20 m from the boss (%.1f m)" % gap)
+		_check(Vector2(level.portal.global_position.x, level.portal.global_position.z).length() <= level.level.radius - 1.9, "...inside the arena")
+		_check(not level._blocked(level.portal.global_position), "...and not on a rock")
 		level.portal.entered.disconnect(level.back_to_map)
 		var used := [false]
 		level.portal.entered.connect(func() -> void: used[0] = true)
 		await _seconds(1.2)
 		_check(not used[0], "the portal waits for you")
 		player.global_position = level.portal.global_position
-		await _seconds(0.3)
-		_check(used[0], "walking into the portal takes it")
+		await _seconds(0.5)
+		_check(not used[0], "walking into the portal does NOT take it")
+		PlayerInput.point_pressed.emit(Vector2(5, 5))
+		await _frames(2)
+		_check(not used[0], "clicking somewhere else doesn't take it")
+		var cam := get_viewport().get_camera_3d()
+		PlayerInput.point_pressed.emit(cam.unproject_position(level.portal.global_position + Vector3(0, 1.1, 0)))
+		await _frames(2)
+		_check(used[0], "clicking the portal takes it")
+		used[0] = false
+		level.portal._used = false
+		player.global_position = level.portal.global_position + Vector3(Portal.USE_RANGE + 2.0, 0, 0)
+		player._on_interact(false)
+		_check(not used[0], "interact from far away doesn't take it")
+		player.global_position = level.portal.global_position + Vector3(1.5, 0, 0)
+		player._on_interact(false)
+		_check(used[0], "interact (gamepad X / E) next to the portal takes it")
+		for i in 6:   # wherever the boss dies, the portal lands ~20 m off, in the arena
+			var at := Vector3(cos(i * 1.1), 0, sin(i * 1.1)) * (level.level.radius - 2.0) * (i / 5.0)
+			var s := level.portal_spot(at)
+			_check(absf(s.distance_to(at) - Level.PORTAL_DISTANCE) < 1.0 and s.length() <= level.level.radius - 1.9, "portal spot from %s is 20 m away (%.1f)" % [str(at), s.distance_to(at)])
 	await _seconds(1.8)
 	_clear_enemies()
 
