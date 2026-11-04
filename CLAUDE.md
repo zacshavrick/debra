@@ -13,6 +13,7 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1         # builds/window
 node tools/serve-web.mjs                                         # play the web build at http://localhost:8060
 ```
 To run Godot directly: `.tools/godot/Godot_v4.7.2-stable_win64_console.exe --path game ...`. Always pass `--quit-after N` to headless runs.
+`.tools/` is now a junction to `../shared/toolchain`, the one shared Godot install (since 2026-11-03). Don't run `setup-godot.ps1` again unless that folder is missing.
 
 ## Rules
 - **The design lives in `docs/DESIGN.md`.** When Zac decides something in chat, update it. Mark items **Decided**, **Default** (Claude's pick) or **Open**. Ask before committing to an Open item that's hard to undo.
@@ -40,7 +41,7 @@ To run Godot directly: `.tools/godot/Godot_v4.7.2-stable_win64_console.exe --pat
 - **Content is data.** A new creature is a `.tres` in `data/creatures/`. Give it a `min_depth` and the generator picks it up. A non-crustacean also needs a `body_kind` in `CritterVisual` (bodies animate generically via named nodes).
 - Milestone 4 is done: Legendary + Gold tiers with mods (`Mods`), set bonuses (`Sets`; Gold Debra = Headliner), shell spacebar abilities (`ShellAbility`), passive tails, bag + stash + `InventoryUI`, loot bubbles that vanish after 20 s, a branching map, and dev skip (`GameState.dev_mode`, F5, SKIP).
 - 2026-10-20: each crab is its own saved game (`GameState` slots: CONTINUE / NEW GAME on crab select), and depth 1-3 bosses are paced slower (`Level.early_boss_pace`, `Creature.boss_pace`).
-- 2026-10-24: the boss portal opens ~20 m away and must be clicked or tapped (gamepad: X next to it).
-- 2026-10-23: each starter has its own movement move (`MoveAbility`, Space / A / MOVE; cooldowns 0.9 s, Louise 0.6 s; Gary jumps ~24 m over everything; shell abilities moved to C / B, the basic dash became Harden): Gary jump, Saul zigzag scuttle RRLL, Debra lunge, Marjorie arc, Louise shimmy FFBF. Fixed per crab for now (tail-linked movement is Open). Title screen backdrop + creature parade; swaying `Props` in levels.
+- 2026-10-28: the boss portal opens ~10 m away and must be clicked or tapped (gamepad: X next to it). Floor swaps drop the old part in place with a fresh timer; swap prompts warn about lost mods, abilities and set bonuses (`HUD.swap_losses`). Gary jumps ~10 m.
+- 2026-10-23: each starter has its own movement move (`MoveAbility`, Space / A / MOVE; cooldowns 0.9 s, Louise 0.6 s; shell abilities moved to C / B, the basic dash became Harden): Gary jump, Saul zigzag scuttle RRLL, Debra lunge, Marjorie arc, Louise shimmy FFBF. Fixed per crab for now (tail-linked movement is Open). Title screen backdrop + creature parade; swaying `Props` in levels.
 - Not verified yet: touch input on a real phone, and balance deep into the dive (past ~depth 30). The smoke test takes about 9 minutes.
 - Next candidates are in DESIGN.md → "Milestones".

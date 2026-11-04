@@ -4,7 +4,7 @@ extends Node
 ## to the crab, not to a part (CreatureData.move_ability), so swapping gear never
 ## changes it. Charges refill one at a time, one per `cooldown` seconds.
 ##
-##   leap     Gary      1 charge, 0.9 s: a big jump (~24 m) over everything, untouchable in the air
+##   leap     Gary      1 charge, 0.9 s: a jump (~10 m) over everything, untouchable in the air
 ##   scuttle  Saul      3 charges, 0.9 s: zigzag dash forward, pattern Right, Right, Left, Left
 ##   lunge    Debra     2 charges, 0.9 s: a long forward dash
 ##   arc      Marjorie  2 charges, 0.9 s: a fast dash that curves (right, then left)
@@ -13,7 +13,7 @@ extends Node
 signal used(kind: StringName, step: int)
 
 const MOVES := {
-	&"leap": {"name": "Long Jump", "charges": 1, "cooldown": 0.9, "speed": 24.0, "time": 1.0, "height": 4.5},
+	&"leap": {"name": "Long Jump", "charges": 1, "cooldown": 0.9, "speed": 13.0, "time": 0.75, "height": 3.0},
 	&"scuttle": {"name": "Scuttle", "charges": 3, "cooldown": 0.9, "speed": 17.0, "time": 0.24, "pattern": ["R", "R", "L", "L"]},
 	&"lunge": {"name": "Lunge", "charges": 2, "cooldown": 0.9, "speed": 20.0, "time": 0.35},
 	&"arc": {"name": "Arc Dash", "charges": 2, "cooldown": 0.9, "speed": 30.0, "time": 0.26, "turn": PI * 0.5},

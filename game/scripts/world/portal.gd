@@ -1,6 +1,6 @@
 class_name Portal
 extends Node3D
-## Opens ~20 m from where the boss died. Click (or tap) it to go back to the
+## Opens ~10 m from where the boss died. Click (or tap) it to go back to the
 ## map, whenever you like: walking into it does nothing, so you can loot in
 ## peace. Gamepad: walk up to it and press interact.
 

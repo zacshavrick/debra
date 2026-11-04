@@ -147,7 +147,7 @@ func _on_boss_spawned(b: Creature) -> void:
 	_boss_name.text = b.display_name
 
 
-## No prompt: a portal opened ~20 m from the boss. Click it whenever.
+## No prompt: a portal opened ~10 m from the boss. Click it whenever.
 func _on_cleared(unlocked_next: bool) -> void:
 	var msg := "Boss down! A portal opened nearby. Click it whenever you're done looting."
 	if unlocked_next:
@@ -205,15 +205,44 @@ func _update_prompt() -> void:
 	if part.data.slot == PartData.Slot.CLAW:
 		t += "[color=#ffe0a0]%s[/color]\n" % CrabCombat.style_info(part)
 		t += "Left: %s\n" % _diff(part, player.equipment.get_part(Equipment.Socket.CLAW_L))
+		t += _loss_line(Equipment.Socket.CLAW_L, part, "Left: you'll lose")
 		t += "Right: %s\n" % _diff(part, player.equipment.get_part(Equipment.Socket.CLAW_R))
+		t += _loss_line(Equipment.Socket.CLAW_R, part, "Right: you'll lose")
 		t += _keys("Equip left", "Equip right")
 	else:
 		var socket: int = Equipment.sockets_for(part.data.slot)[0]
 		if part.data.slot == PartData.Slot.TAIL:
 			t += "[color=#a0ffd0]%s[/color]\n" % TailBrain.info(part)
 		t += _diff(part, player.equipment.get_part(socket)) + "\n"
+		t += _loss_line(socket, part, "You'll lose")
 		t += _keys("Equip", "")
 	_prompt.text = t + "[/center]"
+
+
+## What you'd give up by putting `new_part` in `socket`: the old part's mod,
+## shell ability, tail behaviour, or a set bonus it completes. Empty = nothing.
+static func swap_losses(eq: Equipment, socket: int, new_part: PartInstance) -> Array[String]:
+	var out: Array[String] = []
+	var old := eq.get_part(socket)
+	if old == null:
+		return out
+	if old.mod != &"" and old.mod != new_part.mod:
+		out.append("%s (mod)" % Mods.short_name(old.mod))
+	if socket == Equipment.Socket.SHELL and ShellAbility.info(old) != ShellAbility.info(new_part):
+		out.append("%s (shell ability)" % ShellAbility.info(old).get_slice(":", 0))
+	if socket == Equipment.Socket.TAIL and old.data.ability != &"" and old.data.ability != new_part.data.ability:
+		out.append("%s (tail)" % TailBrain.info(old).get_slice(":", 0))
+	for id in Sets.active(eq):
+		var keeps := new_part.data.set_id == id and new_part.rarity >= Sets.required_tier(id) and new_part.data.id == old.data.id
+		if old.data.set_id == id and not keeps:
+			out.append("%s (set bonus)" % Sets.title_of(id))
+	return out
+
+
+## "You'll lose: Midas (mod)" in warning orange, or "" when the swap costs nothing special.
+func _loss_line(socket: int, new_part: PartInstance, lead: String) -> String:
+	var lost := swap_losses(player.equipment, socket, new_part)
+	return "" if lost.is_empty() else "[color=#ff9a6a]%s: %s[/color]\n" % [lead, ", ".join(lost)]
 
 
 func _keys(main: String, alt: String) -> String:

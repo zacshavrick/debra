@@ -384,7 +384,7 @@ func _on_boss_died(b: Creature) -> void:
 		cleared.emit(unlocked)
 
 
-## A portal back to the map, ~PORTAL_DISTANCE from where the boss died. It stays
+## A portal back to the map, ~PORTAL_DISTANCE from where the boss died (clear of its loot). It stays
 ## open; click it (or walk up and interact) whenever you're done looting.
 func open_portal(at: Vector3) -> void:
 	if is_instance_valid(portal):
@@ -395,13 +395,13 @@ func open_portal(at: Vector3) -> void:
 	portal.entered.connect(back_to_map)
 
 
-const PORTAL_DISTANCE := 20.0
+const PORTAL_DISTANCE := 10.0
 
 
 ## A clear spot PORTAL_DISTANCE from `at`, inside the arena and off any rock.
 ## If the arena can't fit that, the spot that comes closest.
 func portal_spot(at: Vector3) -> Vector3:
-	var limit := level.radius - 2.0   # 20 m fits even from the middle of the smallest (22 m) arena
+	var limit := level.radius - 2.0
 	var origin := Vector3(at.x, 0, at.z)
 	var best := Vector3.ZERO
 	var best_err := INF

@@ -31,7 +31,7 @@ Each starter has its own movement move (Decided: the moves, Space to use them, c
 
 | Crab | Move | Charges | Cooldown | What it does |
 |---|---|---|---|---|
-| Gary | Long Jump | 1 | 0.9 s | A big jump (~24 m, stops at the arena edge) over creatures, rocks and coral; untouchable in the air |
+| Gary | Long Jump | 1 | 0.9 s | A jump (~10 m, stops at the arena edge) over creatures, rocks and coral; untouchable in the air |
 | Saul | Scuttle | 3 | 0.9 s | Zigzag dash: diagonally forward, pattern **Right, Right, Left, Left**, repeating |
 | Debra | Lunge | 2 | 0.9 s | A long forward dash |
 | Marjorie | Arc Dash | 2 | 0.9 s | A fast (speed 30) medium dash that curves 90°, alternating right then left (Default) |
@@ -53,7 +53,7 @@ Each starter has its own movement move (Decided: the moves, Space to use them, c
 | **The map branches** (Decided): 2–3 routes per depth that fork and rejoin; a level unlocks when any level leading to it is cleared. Cliffs, kelp, coral, glowing specks and whale bones line the chart, the water darkens with depth, and modifier dots ring each level | Default (look) |
 | **Bosses dash much farther** (×2.2 reach, Decided for the shark boss; applies to every boss charge) | Decided |
 | **Dev skip** (Decided): F5 or SKIP in a level clears it and opens the portal; "DEV: mark cleared" on the map. `GameState.dev_mode` | Decided |
-| **When the boss dies, a portal opens ~20 m away** (2026-10-24). No prompt, and walking into it does nothing: **click it** (tap on touch; gamepad: walk up and press X / E) whenever you want to leave, and keep fighting/looting until then | Decided |
+| **When the boss dies, a portal opens ~10 m away** (2026-10-28; clear of the loot). No prompt, and walking into it does nothing: **click it** (tap on touch; gamepad: walk up and press X / E) whenever you want to leave, and keep fighting/looting until then | Decided |
 
 ### What makes each generated depth different (Decided ingredients, Default details)
 1. **Biome.** Shallows, Kelp, Reef, Wreck, Abyss, plus Smoking Vents (6+), Sargassum Drift (6+), Cold Seep (7+), Black Trench (8+) and Whale Fall (9+), each with its own palette and scenery. Newer biomes get likelier the deeper you go.
@@ -187,7 +187,7 @@ Luck (depth, bosses, champions, Treasure, Lucky) boosts tiers up to Epic fully, 
 Higher rarity shortens cooldowns; Timeless cuts them by 40%.
 
 ### Inventory and storage (Decided)
-- **Bag:** 30 slots, per crab. Q / Y / TAKE puts loot in the bag. A part you swap out goes into the bag (or to the floor if the bag is full).
+- **Bag:** 30 slots, per crab. Q / Y / TAKE puts loot in the bag. Swapping with a part on the floor (E / X) drops your old part right where the new one lay, with a fresh 20 s timer, so you can swap back (Decided 2026-10-28). Equipping from the inventory still sends the old part to the bag. The swap prompt (and the inventory) warns what you will lose: a mod, a shell ability, a tail behaviour, or a set bonus.
 - **Stash:** 90 slots at home, per crab. Reach it at the Coke can in any level (open the inventory there), or with STASH / BAG on the map.
 - **Inventory screen** (I / Tab / Back / INV): what you're wearing, set progress, active mods, bag and stash. It compares stats against what you wear, and lets you equip (L/R for claws), store, or drop/scrap. The game pauses while it's open.
 - **Loot on the floor vanishes after 20 seconds,** blinking for the last 5 (Decided). It floats in a glowing bubble in its rarity colour, so it never looks like a creature (Decided fix: the jelly cap looked like a jellyfish).

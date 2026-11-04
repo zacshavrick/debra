@@ -238,7 +238,7 @@ func _show_detail() -> void:
 		PartData.Slot.CLAW:
 			t += "[color=#ffe0a0]%s[/color]\n" % CrabCombat.style_info(p)
 		PartData.Slot.SHELL:
-			t += "[color=#a0d8ff]Space: %s[/color]\n" % ShellAbility.info(p)
+			t += "[color=#a0d8ff]Shell ability: %s[/color]\n" % ShellAbility.info(p)
 		PartData.Slot.TAIL:
 			t += "[color=#a0ffd0]%s[/color]\n" % TailBrain.info(p)
 	if p.mod != &"":
@@ -250,6 +250,9 @@ func _show_detail() -> void:
 	if _selected_worn < 0:
 		for s in Equipment.sockets_for(p.data.slot):
 			t += "vs %s: %s\n" % [Equipment.SOCKET_NAMES[s], _diff(p, _eq.get_part(s))]
+			var lost := HUD.swap_losses(_eq, s, p)
+			if not lost.is_empty():
+				t += "[color=#ff9a6a]   you'll lose: %s[/color]\n" % ", ".join(lost)
 	_detail.text = t
 	if _selected_worn >= 0:
 		return   # worn parts are swapped out by equipping something else

@@ -263,7 +263,48 @@ func _test_equip_changes_look_and_stats() -> void:
 	_check(player.health.defense > def_before, "DEF went up (%.1f -> %.1f)" % [def_before, player.health.defense])
 	var saved := GameState.loadout_for(&"debra")[Equipment.Socket.SHELL]
 	_check(saved.data.id == &"hermit_shell" and saved.level == 3, "mutation (with its level) saved for Debra")
-	_check(GameState.bag.any(func(p: PartInstance) -> bool: return p.data.id == &"debra_shell"), "the swapped-out shell went into the bag")
+	_check(not GameState.bag.any(func(p: PartInstance) -> bool: return p.data.id == &"debra_shell"), "the swapped-out shell did NOT go into the bag")
+	var dropped: PartPickup = null
+	for n in get_tree().get_nodes_in_group("pickups"):
+		if (n as PartPickup).part.data.id == &"debra_shell":
+			dropped = n as PartPickup
+	_check(dropped != null, "the swapped-out shell is on the floor")
+	if dropped:
+		var where := Vector2(dropped.global_position.x - pk.global_position.x, dropped.global_position.z - pk.global_position.z).length()
+		_check(where < 0.1, "...right where the new one lay (%.2f m off)" % where)
+		_check(dropped.life > PartPickup.LIFETIME - 0.5, "...with a fresh despawn timer (%.1f s)" % dropped.life)
+		# Swap back: the conch lands in its place with a fresh timer too.
+		await _seconds(0.8)
+		player.global_position = dropped.global_position
+		await _seconds(0.3)
+		_check(player.focused_pickup == dropped, "the dropped shell can be picked back up")
+		PlayerInput.interact_pressed.emit(false)
+		await _frames(2)
+		var back := false
+		for n in get_tree().get_nodes_in_group("pickups"):
+			if (n as PartPickup).part == conch and (n as PartPickup).life > PartPickup.LIFETIME - 0.5:
+				back = true
+		_check(player.equipment.get_part(Equipment.Socket.SHELL).data.id == &"debra_shell" and back, "swapping back drops the conch with a fresh timer")
+		for n in get_tree().get_nodes_in_group("pickups"):
+			if (n as PartPickup).part == conch:
+				player.global_position = (n as PartPickup).global_position
+				await _seconds(0.9)
+				PlayerInput.interact_pressed.emit(false)
+				await _frames(2)
+		_check(player.equipment.get_part(Equipment.Socket.SHELL) == conch, "...and the conch goes back on")
+	# Swapping out a part with a special ability warns you first.
+	var eq := player.equipment
+	var fin := PartInstance.new(PartCatalog.by_id(&"shark_fin"), Rarity.Tier.LEGENDARY, 1)
+	_check(HUD.swap_losses(eq, Equipment.Socket.SHELL, fin).any(func(s: String) -> bool: return s.contains("shell ability")), "swap warning: losing a shell ability (%s)" % str(HUD.swap_losses(eq, Equipment.Socket.SHELL, fin)))
+	var modded := PartInstance.new(PartCatalog.by_id(&"shore_eyes"), Rarity.Tier.LEGENDARY, 1)
+	modded.mod = &"frost"
+	var plain := PartInstance.new(PartCatalog.by_id(&"shore_eyes"), Rarity.Tier.COMMON, 1)
+	var head_was := eq.get_part(Equipment.Socket.HEAD)
+	eq.equip(Equipment.Socket.HEAD, modded)
+	var lost := HUD.swap_losses(eq, Equipment.Socket.HEAD, plain)
+	_check(lost.size() == 1 and lost[0].contains("Frost"), "swap warning: losing a mod (%s)" % str(lost))
+	_check(HUD.swap_losses(eq, Equipment.Socket.HEAD, modded).is_empty(), "no warning when nothing is lost")
+	eq.equip(Equipment.Socket.HEAD, head_was)
 
 
 func _test_claw_styles() -> void:
@@ -385,7 +426,7 @@ func _test_level_flow_and_portal() -> void:
 	_check(is_instance_valid(level.portal), "a portal opens after the boss dies")
 	if is_instance_valid(level.portal):
 		var gap := Vector2(level.portal.global_position.x - boss_at.x, level.portal.global_position.z - boss_at.z).length()
-		_check(absf(gap - Level.PORTAL_DISTANCE) < 1.0, "...about 20 m from the boss (%.1f m)" % gap)
+		_check(absf(gap - Level.PORTAL_DISTANCE) < 1.0, "...about 10 m from the boss (%.1f m)" % gap)
 		_check(Vector2(level.portal.global_position.x, level.portal.global_position.z).length() <= level.level.radius - 1.9, "...inside the arena")
 		_check(not level._blocked(level.portal.global_position), "...and not on a rock")
 		level.portal.entered.disconnect(level.back_to_map)
@@ -411,10 +452,10 @@ func _test_level_flow_and_portal() -> void:
 		player.global_position = level.portal.global_position + Vector3(1.5, 0, 0)
 		player._on_interact(false)
 		_check(used[0], "interact (gamepad X / E) next to the portal takes it")
-		for i in 6:   # wherever the boss dies, the portal lands ~20 m off, in the arena
+		for i in 6:   # wherever the boss dies, the portal lands ~10 m off, in the arena
 			var at := Vector3(cos(i * 1.1), 0, sin(i * 1.1)) * (level.level.radius - 2.0) * (i / 5.0)
 			var s := level.portal_spot(at)
-			_check(absf(s.distance_to(at) - Level.PORTAL_DISTANCE) < 1.0 and s.length() <= level.level.radius - 1.9, "portal spot from %s is 20 m away (%.1f)" % [str(at), s.distance_to(at)])
+			_check(absf(s.distance_to(at) - Level.PORTAL_DISTANCE) < 1.0 and s.length() <= level.level.radius - 1.9, "portal spot from %s is 10 m away (%.1f)" % [str(at), s.distance_to(at)])
 	await _seconds(1.8)
 	_clear_enemies()
 
@@ -1017,7 +1058,7 @@ func _test_move_abilities() -> void:
 	p.receive_hit(50.0, p.global_position + Vector3.LEFT, 0.0, null)
 	_check(p.health.hp == hp, "nothing hits Gary mid-jump")
 	await _seconds(1.8)
-	_check(not p.airborne and p.global_position.x > 15.0 and p.global_position.x < 32.0, "Gary jumped way past the isopod and the rock (x %.1f)" % p.global_position.x)
+	_check(not p.airborne and p.global_position.x > 8.0 and p.global_position.x < 12.0, "Gary jumped past the isopod and the rock, ~10 m (x %.1f)" % p.global_position.x)
 	_check(Vector2(p.global_position.x, p.global_position.z).length() <= lv.level.radius, "...and landed inside the arena")
 	lv.queue_free()
 	await _frames(3)

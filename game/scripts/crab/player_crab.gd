@@ -208,7 +208,11 @@ func equip_part(socket: int, part: PartInstance, pickup: PartPickup = null) -> v
 	focused_pickup = null
 	var old := equipment.equip(socket, part)
 	if old:
-		if not persist or not GameState.add_to_bag(old):
+		if pickup:
+			# a swap off the floor: the old part lands where the new one lay,
+			# with a fresh despawn timer (swap back within 20 s if you change your mind)
+			PartPickup.spawn(get_parent(), drop_at, old, false)
+		elif not persist or not GameState.add_to_bag(old):
 			PartPickup.spawn(get_parent(), drop_at - facing * 0.9, old, false)
 	if persist:
 		GameState.store_loadout(creature.id, equipment)
